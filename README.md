@@ -7,7 +7,8 @@ SwitchBoard is a library that leverages severless functions to allow users to cr
 There are many tools for orchestration out there already like Airflow, Luigi, Google Workflows, etc. However, for more simple and less complex use cases, there are a few problems with using previously existing tools.
 * Usually, a dedicated instance is required for orchestration. This is typically an additional cost that can seem unreasonable given simple or low volume use cases that still have an orchestration need.
 * In the case of something like Workflows, additional tools are required to manage orchestration. Additional tools utilized means additional technologies to manage.
-* With a simple, low complexity use case, managing tools built for complex data flows can feel a bit over engineered.
+* With a simple, low complexity use case, managing tools built for complex data flows can feel a bit over engineered. 
+
 SwitchBoard attempts to provide a simplistic option by enabling a development environment without having to align between multiple tools. Multiple data pipelines can be built using the SwitchBoard library and the orchestration can also be managed within all within a monorepo, or multiple if desired.
 
 ## How does it work?
