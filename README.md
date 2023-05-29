@@ -20,5 +20,5 @@ The **Pipeline** will use a **DataSource** to perform the specified task.
 On completion, the **Pipeline** will send confirmation to the **SwitchBoard** that it was executed successfully.
 The **SwitchBoard** then updates the **StatusController** and identifies any downstream **Pipeline** to execute.
 
-![Diagram](SwitchBoard.png)
+![Diagram](SwitchBoard.PNG)
 
