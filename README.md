@@ -16,7 +16,7 @@ Multiple data pipelines can be built and orchestration managed using the SwitchB
 
 SwitchBoard is comprised of four main components: **Callers**, **DataSources**, **Pipelines**, **StatusControllers**, and **a SwitchBoard**.  
   
-* A **Caller** is triggered by a pubsub topic that will pass caller information to the **SwitchBoard**.  
+* A **Caller** is triggered and passes caller information to the **SwitchBoard**.  
 * The **SwitchBoard** will determine the appropriate **Pipeline** to execute and reference the **StatusController** to verify if dependencies, if any, have been met.  
 * The **Pipeline** will use a **DataSource** to perform the specified task.  
 * On completion, the **Pipeline** will send confirmation to the **SwitchBoard** that it was executed successfully.  
