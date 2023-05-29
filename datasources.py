@@ -8,8 +8,12 @@ import logging
 
 
 
+# TODO
+    # refactor for dependency injection of methods
+        # any method that needs logic specified by child object should be argument passed to Object
+        
 
-# parent objects
+
 
 class DataSource:
     def __init__(self) -> None:

@@ -6,6 +6,13 @@ from datasources import DataSource, Query
 
 
 
+#TODO
+    # refactor to better handle testing
+
+
+
+
+
 class Pipeline:
     def __init__(self, sources, forcedupdatesources=[]) -> None:
         self.timestamp = datetime.datetime.now()
@@ -106,4 +113,3 @@ def run_pipeline(data, manual):
     print('Complete')
 
 
-    
