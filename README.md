@@ -11,7 +11,8 @@ There are many tools for orchestration out there already like Airflow, Luigi, Go
 
 SwitchBoard attempts to provide a simplistic option by enabling a development environment without having to align between multiple tools.  
 Multiple data pipelines can be built and orchestration managed using the SwitchBoard library all within a monorepo, or multiple if desired.  
-
+  
+Currently, only Python and Google Cloud are supported. There are plans to support other languages and cloud providers in the future.
 ## How does it work?
 
 SwitchBoard is comprised of four main components: **Callers**, **DataSources**, **Pipelines**, **StatusControllers**, and **a SwitchBoard**.  
