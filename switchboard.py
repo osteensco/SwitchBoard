@@ -1,7 +1,8 @@
 import base64
 import requests
 import logging
-
+import json
+from google.cloud import storage
 
 
 
@@ -64,7 +65,6 @@ class Caller():
         self.payload['sender'] = sender
         init_log()
 
-    
     def place_call(self):
         print('call placed to switchboard')
         # response = requests.post(self.switchboard, json=self.body)
@@ -78,10 +78,11 @@ class Caller():
 
 
 class SwitchBoard():
-    def __init__(self, data) -> None:
+    
+    def __init__(self, bucket_name, data) -> None:
         self.data = base64.b64decode(data['data']).decode('utf-8')
-        self.caller = self.data['caller']
-        self.statusController = self.grabStatus()
+        self.caller = self.data['sender']
+        self.statusController = self.grabStatus(bucket_name)
         self.destinationMap = {
             'cron': [],
             'webhook': [],
@@ -89,13 +90,29 @@ class SwitchBoard():
         }
         init_log()
 
+    @http_trigger
     def receiveCall(self):
-        # provide response object
+        logging.info(f'''Call received from {self.caller}''')
         return
 
-    def grabStatus(self):
+    def grabStatus(self, bucket_name):
         # read in appropriate json object in cloud storage
-        return
+        client = storage.Client()
+        bucket = client.get_bucket(bucket_name)
+
+        blobs = bucket.list_blobs()
+
+        status_controller = {}
+        # status_controller = []
+
+        for blob in blobs:
+            if blob.name.startswith(f'''{self.caller}/''') and blob.name.endswith('.json'):
+ 
+                blob_content = blob.download_as_text()
+                status = json.loads(blob_content)
+                status_controller.update(status)
+                # status_controller.append(status)
+        return status_controller
 
     def grabDestination(self):
         # determine the correct http endpoint to call from self.destinationMap
@@ -139,7 +156,10 @@ class SwitchBoard():
 
 if __name__ == '__main__':
     
-    @http_trigger
+    
+    # I probably won't need to use http_trigger decorator for entrypoint functions as I leverage pubsub messages instead of HTTP triggers here.
+    # The SwitchBoard is always HTTP triggered though.
+    # @http_trigger
     def entrypoint(request):
         sender = 'daily'
         payload = {'headers': {'APIKEY': '12345'}, 'body':  request['body']}
@@ -152,3 +172,6 @@ if __name__ == '__main__':
         caller.place_call()
 
     entrypoint({'headers': 'none', 'body': 'some data here'})
+
+
+
