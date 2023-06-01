@@ -1,6 +1,6 @@
 import base64
 import requests
-
+import logging
 
 
 
@@ -12,18 +12,56 @@ import requests
 
 
 
+
+
+
+
+
+#decorator for sending response immediately once http function is triggered
+def trigger(func):
+    
+    def execute(request):
+        import functions_framework
+        
+        #google cloud functions utilize the functions_framework
+        @functions_framework.http
+        def send_response(request):
+            return 'OK'
+        
+        # send response prior to executing function
+        send_response(request)
+        func(request)
+
+    return execute
+
+
+def init_log():
+    logger = logging.getLogger()
+    if logger.hasHandlers():
+        if logger.getEffectiveLevel() > logging.NOTSET:
+            return
+        else:
+            logger.getLogger().setLevel(logging.INFO)
+    else:    
+        logger.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
+
 class Caller():
     def __init__(self, switchboard, body) -> None:
         self.switchboard = switchboard
         self.body = body
-    
+        init_log()
+
+    @trigger
     def place_call(self):
+        
         response = requests.post(self.switchboard, json=self.body)
 
         if response.status_code == 200:
-            print('Switchboard trigger request successful!')
+            logging.info('Switchboard trigger request successful!')
         else:
-            print('Request failed with status code:', response.status_code)
+            logging.error('Request failed with status code:', response.status_code)
+
 
 
 
@@ -38,7 +76,7 @@ class SwitchBoard():
             'webhook': [],
 
         }
-
+        init_log()
 
     def receiveCall(self):
         # provide response object
@@ -88,3 +126,11 @@ class SwitchBoard():
 
 
 
+if __name__ == '__main__':
+    
+    def entrypoint(request):
+        caller = Caller('switchboard', request)
+        print(caller.body)
+        caller.place_call()
+
+    entrypoint({'headers': 'none', 'body': 'none'})

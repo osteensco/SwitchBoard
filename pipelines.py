@@ -1,7 +1,7 @@
 import datetime
 import logging
 from datasources import DataSource, Query
-
+from switchboard import init_log
 
 
 
@@ -18,14 +18,9 @@ class Pipeline:
         self.timestamp = datetime.datetime.now()
         self.data_objs = sources
         self.override_scheduling = forcedupdatesources
-        self.init_log()
+        init_log()
         self.run()
 
-    def init_log(self):
-        if logging.getLogger().hasHandlers():
-            logging.getLogger().setLevel(logging.INFO)
-        else:    
-            logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
     def retrieve_secrets(self):#attain API Keys
         allobjs = self.data_objs + self.override_scheduling
