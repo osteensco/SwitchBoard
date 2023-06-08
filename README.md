@@ -17,8 +17,8 @@ Currently, only Python and Google Cloud are supported. There are plans to suppor
 
 SwitchBoard is comprised of four main components: **Callers**, **DataSources**, **Pipelines**, **StatusControllers**, and **a SwitchBoard**.  
   
-* A **Caller** is createdand passes caller information to the **SwitchBoard**.  
-* The **SwitchBoard** will determine the appropriate **Pipeline** to execute and reference the **StatusController** to verify if dependencies, if any, have been met.  
+* A **Caller** is created and passes caller information to the **SwitchBoard**.  
+* The **SwitchBoard** will determine the appropriate **Pipeline** to execute and reference the **StatusController** to verify the dependency requirements, if any, have been met.  
 * The **Pipeline** will use a specific **DataSource** to perform the specified task.  
 * On completion, the **Pipeline** will send confirmation to the **SwitchBoard** that it was executed successfully.  
 * The **SwitchBoard** then updates the **StatusController** and identifies any downstream **Pipeline** to execute.  
