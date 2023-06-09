@@ -9,6 +9,8 @@ from google.cloud import storage
 # TODO
     # build out SwitchBoard methods
     ##### BUILD StatusController JSON(s) #####
+    ##### SwitchBoard.destinationMap should be passed in as argument from environment variable ##### 
+
     # build out testing mechanisms
 
 
@@ -59,6 +61,11 @@ def init_log():
 class Caller():
     '''
     Used for interacting with the SwitchBoard API
+
+    ARGS:
+        switchboard: ENV variable of switchboard endpoint
+        sender: name of sender, used by SwitchBoard to map call to appropriate pipeline
+        payload: data to be ultimately passed to pipeline function
     '''
     def __init__(self, switchboard, sender, payload) -> None:
         self.switchboard = switchboard
@@ -79,16 +86,31 @@ class Caller():
 
 
 class SwitchBoard():
-    
-    def __init__(self, bucket_name, data) -> None:
-        self.data = base64.b64decode(data['data']).decode('utf-8')
+    '''
+    Central control component of the SwitchBoard framework
+
+    ARGS: 
+        bucket_name: name of object storage bucket where StatusController object can be found
+        payload: payload passed from Caller object, used to pass any necessary data to pipeline function
+        destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint
+    _______________________________________________________________________________
+        payload will need to include the following at minimum:
+        {
+            sender: '[name of sender here]', \n
+            data: {[json data structure here]}
+        }
+ 
+    Sender will be used to map the appropriate pipeline to call based on the StatusController object retrieved.
+    '''
+    def __init__(self, bucket_name, payload, destinationMap) -> None:
+        self.data = base64.b64decode(payload['data']).decode('utf-8')
         self.caller = self.data['sender']
         self.statusController = self.grabStatus(bucket_name)
-        self.destinationMap = {
-            'cron': [],
-            'webhook': [],
-
-        }
+        self.destinationMap = destinationMap
+        # {
+        #     'cron': [],
+        #     'webhook': [],
+        # }
         init_log()
 
     @http_trigger
@@ -107,7 +129,7 @@ class SwitchBoard():
         # status_controller = []
 
         for blob in blobs:
-            if blob.name.startswith(f'''{self.caller}/''') and blob.name.endswith('.json'):
+            if blob.name.startswith(f'''{self.caller}_StatusController/''') and blob.name.endswith('.json'):
  
                 blob_content = blob.download_as_text()
                 status = json.loads(blob_content)
