@@ -172,6 +172,38 @@ class SwitchBoard():
     ####On completion of pipeline GCF, SwitchBoard will be triggered to communicate successful run.
         ###SwitchBoard will update .json file in cloud storage once successful pipeline run is communicated to it.
 
+
+##### Handle concurrent updates on StatusController google cloud storage objects -
+
+        # Conditional Requests: 
+
+            # GCS supports conditional requests that allow you to specify conditions for updates. 
+            # For example, you can use the ifGenerationMatch parameter when performing an update. 
+            # This parameter ensures that the update is applied only if the current generation of the object matches the one provided. 
+            # If the generation does not match, it means another instance has updated the object, and you can choose to retry the update or handle the conflict accordingly.
+
+        # Distributed Locking:
+
+            # Acquiring a lock before updating the StatusController ensures that only one instance can modify the StatusController at a time. 
+            # GCS itself doesn't provide built-in distributed locking mechanisms. I could potentially use another object as a "lock". 
+            # For every object, a corresponding lock object could exist, this could be created by the SwitchBoard and contain a unique key the SwitchBoard generates in each instance. 
+            # Prior to updating the StatusController, a short pause is executed and the lock is verified with the unique instance key.
+            # If key does not match, SwitchBoard applies retry logic after a certain amount of time.
+            # Upon SwitchBoard completion, it's lock is removed. 
+        
+        # Atomic Operations: 
+
+            # Instead of directly updating the entire StatusController, you can update specific fields. 
+            # By using atomic operations supported by GCS (e.g., compose operation), Cloud Function instances can modify specific fields independently, reducing the likelihood of conflicts.
+
+
+
+
+
+
+
+
+
     # need to setup SwitchBoard library
         ## git+https://github.com/osteensco/[SwitchBoard].git
         ## pip install -e
