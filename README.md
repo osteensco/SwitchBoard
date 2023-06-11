@@ -15,7 +15,7 @@ Multiple data pipelines can be built and orchestration managed using the SwitchB
 Currently, only Python and Google Cloud are supported. There are plans to support other languages and cloud providers in the future.  
 ## How does it work?
 
-SwitchBoard is comprised of four main components: **Callers**, **DataSources**, **Pipelines**, **StatusControllers**, and **a SwitchBoard**.  
+SwitchBoard is comprised of five main components: **Callers**, **DataSources**, **Pipelines**, **StatusControllers**, and **a SwitchBoard**.  
   
 * A **Caller** is created and passes caller information to the **SwitchBoard**.  
 * The **SwitchBoard** will determine the appropriate **Pipeline** to execute and reference the **StatusController** to verify the dependency requirements, if any, have been met.  
