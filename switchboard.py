@@ -3,6 +3,8 @@ import requests
 import logging
 import json
 from google.cloud import storage
+from .utils import http_trigger, init_log
+
 
 
 
@@ -12,43 +14,6 @@ from google.cloud import storage
     ##### SwitchBoard.destinationMap should be passed in as argument from environment variable ##### 
 
     # build out testing mechanisms
-
-
-
-
-
-
-
-
-
-#decorator for sending response immediately once http function is triggered
-def http_trigger(func):
-    
-    def trigger(request):
-        import functions_framework
-        
-        #google cloud functions utilize the functions_framework
-        @functions_framework.http
-        def send_response(request):
-            return 'OK'
-        
-        # send response prior to executing function
-        send_response(request)
-        func(request)
-
-    return trigger
-
-
-def init_log():
-    logger = logging.getLogger()
-    if logger.hasHandlers():
-        if logger.getEffectiveLevel() > logging.NOTSET:
-            return
-        else:
-            logger.getLogger().setLevel(logging.INFO)
-    else:    
-        logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
-
 
 
 
@@ -106,10 +71,57 @@ class SwitchBoard():
         self.data = base64.b64decode(payload['data']).decode('utf-8')
         self.caller = self.data['sender']
         self.statusController = self.grabStatus(bucket_name)
+        # status controller objects are only needed for data sources that have dependency requirements
+        # {
+        #       pipeline_name: {
+        #           completed: true
+        #       }
+        # }
         self.destinationMap = destinationMap
         # {
-        #     'cron': [],
-        #     'webhook': [],
+        #       'cron': {
+        #           'daily': {
+        #               prev_run: 'UTC Timestamp',
+        #               next_run: 'UTC Timestamp',
+        #               endpoint: {
+        #                   name: URL,
+        #                   name: URL,
+        #                   name: URL
+        #               }
+        #           },
+        #           'weekly': {
+        #               prev_run: 'UTC Timestamp',
+        #               next_run: 'UTC Timestamp',
+        #               endpoint: {
+        #                   name: URL,
+        #                   name: URL,
+        #                   name: URL
+        #               }
+        #           }
+        #       },
+        #       'webhook': {
+        #           endpoint: {
+        #               name: URL,
+        #               name: URL,
+        #               name: URL
+        #           }
+        #       },
+        #       'pipeline_completion': {
+        #           name: {
+        #               endpoint: URL,
+        #               dependency: [
+        #                   pipeline_1,
+        #                   pipeline_2
+        #               ]
+        #           },
+        #           name: {
+        #               endpoint: URL,
+        #               dependency: [
+        #                   pipeline_1,
+        #                   pipeline_2
+        #               ]
+        #           }
+        #       }
         # }
         init_log()
 
@@ -128,13 +140,16 @@ class SwitchBoard():
         status_controller = {}
         # status_controller = []
 
+        dependencies = self.destinationMap['pipeline_completion'][self.caller]['dependency']
+
         for blob in blobs:
-            if blob.name.startswith(f'''{self.caller}_StatusController/''') and blob.name.endswith('.json'):
- 
-                blob_content = blob.download_as_text()
-                status = json.loads(blob_content)
-                status_controller.update(status)
-                # status_controller.append(status)
+            for dependency in dependencies:
+                if blob.name.startswith(f'''{dependency}_StatusController/''') and blob.name.endswith('.json'):
+    
+                    blob_content = blob.download_as_text()
+                    status = json.loads(blob_content)
+                    status_controller.update(status)
+                    # status_controller.append(status)
         return status_controller
 
     def grabDestination(self):
