@@ -2,7 +2,6 @@ import base64
 import requests
 import logging
 import json
-from google.cloud import storage
 from .utils import http_trigger, init_log
 
 
@@ -55,7 +54,7 @@ class SwitchBoard():
     Central control component of the SwitchBoard framework
 
     ARGS: 
-        bucket_name: name of object storage bucket where StatusController object can be found
+        bucket: bucket where StatusController object can be found, use utls.connect_to_status_controller outside of serverless function entrypoint to define bucket variable in global scope
         payload: payload passed from Caller object, used to pass any necessary data to pipeline function
         destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint
     _______________________________________________________________________________
@@ -67,14 +66,16 @@ class SwitchBoard():
  
     Sender will be used to map the appropriate pipeline to call based on the StatusController object retrieved.
     '''
-    def __init__(self, bucket_name, payload, destinationMap) -> None:
+    def __init__(self, bucket, payload, destinationMap) -> None:
         self.data = base64.b64decode(payload['data']).decode('utf-8')
         self.caller = self.data['sender']
         self.caller_type = self.data['type']
-        self.statusController = self.grabStatus(bucket_name)
+        self.sc_bucket = bucket
+        # self.statusController = self.grabStatus()
         # status controller objects are only needed for data sources that have dependency requirements
+        
         # {
-        #       pipeline_name(self.caller): {
+        #       pipeline_name(pipeline_completetion[name(self.caller)][dependency][n]): {
         #           completed: true
         #       }
         # }
@@ -82,8 +83,6 @@ class SwitchBoard():
         # {
         #       'cron'(self.caller_type): {
         #           'daily'(self.caller): {
-        #               prev_run: 'UTC Timestamp',
-        #               next_run: 'UTC Timestamp',
         #               endpoint: {
         #                   name: URL,
         #                   name: URL,
@@ -91,8 +90,6 @@ class SwitchBoard():
         #               }
         #           },
         #           'weekly'(self.caller): {
-        #               prev_run: 'UTC Timestamp',
-        #               next_run: 'UTC Timestamp',
         #               endpoint: {
         #                   name: URL,
         #                   name: URL,
@@ -117,7 +114,7 @@ class SwitchBoard():
         #               dependency: [
         #                   pipeline_1,
         #                   pipeline_2
-        #               ]
+        #               ],
         #           },
         #           name(self.caller): {
         #               endpoint: URL,
@@ -133,43 +130,36 @@ class SwitchBoard():
     @http_trigger
     def receiveCall(self):
         logging.info(f'''Call received from {self.caller}''')
-        return
 
-    def grabStatus(self, bucket_name):
+    def grabStatus(self):
         # read in appropriate json object in cloud storage
-        client = storage.Client()
-        bucket = client.get_bucket(bucket_name)
-
-        blobs = bucket.list_blobs()
+        blobs = self.sc_bucket.list_blobs()
 
         status_controller = {}
-        # status_controller = []
 
         dependencies = self.destinationMap['pipeline_completion'][self.caller]['dependency']
 
         for blob in blobs:
             for dependency in dependencies:
-                if blob.name.startswith(f'''{dependency}_StatusController/''') and blob.name.endswith('.json'):
+                if blob.name.startswith(f'''{dependency}_StatusController''') and blob.name.endswith('.json'):
     
                     blob_content = blob.download_as_text()
                     status = json.loads(blob_content)
                     status_controller.update(status)
-                    # status_controller.append(status)
+
         return status_controller
 
     def grabDestination(self):
         # determine the correct http endpoint to call from self.destinationMap
         endpoint_to_call = self.destinationMap[self.caller_type][self.caller]['endpoint']
         # determine if all dependency conditions are met based on statusController data
-        if self.caller_type == 'cron':
-            # get current timestamp
-            # check if current timestamp is after next run timestamp
-            # if so time condition passes, else return out of function
-            pass
-        if self.statusController:
+        if not self.statusController:
+            return endpoint_to_call
+        else:
             if self.statusController[self.caller]['completed']:
                 return endpoint_to_call
-        return None
+            else:
+                return None
 
     def forwardCall(self, endpoint):
         # send request(s) to identified http endpoint(s) and pass along any relevant data
@@ -183,14 +173,27 @@ class SwitchBoard():
     @http_trigger
     def receiveConfirmation(self):
         # called when caller is a completed pipeline function
-        return
+        logging.info(f'''{self.caller} pipeline completed successfully''')
+
     
     def updateStatus(self):
         # update appropriate json object in cloud storage
-        return
+        blob = self.sc_bucket.blob(f'''{self.caller}_StatusController.json''')
 
-    def callDownstream(self):
-        # will execute workflow steps for calling pipelines triggered by upstream completetions
+        if blob.exists():
+            status_controller = {
+                self.caller: {
+                    'completed': True
+                }
+            }
+            blob.upload_from_string(json.dumps(status_controller), content_type='application/json')
+
+    # def callDownstream(self):
+    #     # will execute workflow steps for calling pipelines triggered by upstream completetions
+    #     return
+
+    def run(self):
+        # execute switchboard workflow steps
         return
 
 

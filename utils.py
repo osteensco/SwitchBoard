@@ -1,4 +1,4 @@
-
+from google.cloud import storage
 
 
 
@@ -34,6 +34,9 @@ def init_log():
         logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
-
+def connect_to_status_controller(bucket_name):
+    client = storage.Client()
+    bucket = client.get_bucket(bucket_name)
+    return bucket
 
 
