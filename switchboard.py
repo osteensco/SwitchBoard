@@ -70,17 +70,18 @@ class SwitchBoard():
     def __init__(self, bucket_name, payload, destinationMap) -> None:
         self.data = base64.b64decode(payload['data']).decode('utf-8')
         self.caller = self.data['sender']
+        self.caller_type = self.data['type']
         self.statusController = self.grabStatus(bucket_name)
         # status controller objects are only needed for data sources that have dependency requirements
         # {
-        #       pipeline_name: {
+        #       pipeline_name(self.caller): {
         #           completed: true
         #       }
         # }
         self.destinationMap = destinationMap
         # {
-        #       'cron': {
-        #           'daily': {
+        #       'cron'(self.caller_type): {
+        #           'daily'(self.caller): {
         #               prev_run: 'UTC Timestamp',
         #               next_run: 'UTC Timestamp',
         #               endpoint: {
@@ -89,7 +90,7 @@ class SwitchBoard():
         #                   name: URL
         #               }
         #           },
-        #           'weekly': {
+        #           'weekly'(self.caller): {
         #               prev_run: 'UTC Timestamp',
         #               next_run: 'UTC Timestamp',
         #               endpoint: {
@@ -99,22 +100,26 @@ class SwitchBoard():
         #               }
         #           }
         #       },
-        #       'webhook': {
-        #           endpoint: {
-        #               name: URL,
-        #               name: URL,
-        #               name: URL
+        #       'webhook'(self.caller_type): {
+        #           name(self.caller): {
+        #               endpoint: URL
+        #           },
+        #           name(self.caller): {
+        #               endpoint: URL
+        #           },
+        #           name(self.caller): {
+        #               endpoint: URL
         #           }
         #       },
-        #       'pipeline_completion': {
-        #           name: {
+        #       'pipeline_completion'(self.caller_type): {
+        #           name(self.caller): {
         #               endpoint: URL,
         #               dependency: [
         #                   pipeline_1,
         #                   pipeline_2
         #               ]
         #           },
-        #           name: {
+        #           name(self.caller): {
         #               endpoint: URL,
         #               dependency: [
         #                   pipeline_1,
@@ -154,14 +159,28 @@ class SwitchBoard():
 
     def grabDestination(self):
         # determine the correct http endpoint to call from self.destinationMap
+        endpoint_to_call = self.destinationMap[self.caller_type][self.caller]['endpoint']
         # determine if all dependency conditions are met based on statusController data
-        return
+        if self.caller_type == 'cron':
+            # get current timestamp
+            # check if current timestamp is after next run timestamp
+            # if so time condition passes, else return out of function
+            pass
+        if self.statusController:
+            if self.statusController[self.caller]['completed']:
+                return endpoint_to_call
+        return None
 
-    def forwardCall(self):
-        # send request(s) to identified http endpoint(s)
-        # pass along any relevant data
-        return
+    def forwardCall(self, endpoint):
+        # send request(s) to identified http endpoint(s) and pass along any relevant data
+        response = requests.post(endpoint, json=self.data)
 
+        if response.status_code == 200:
+            logging.info('Pipeline trigger request successful!')
+        else:
+            logging.error('Pipeline trigger request failed with status code:', response.status_code)
+
+    @http_trigger
     def receiveConfirmation(self):
         # called when caller is a completed pipeline function
         return
@@ -178,13 +197,13 @@ class SwitchBoard():
 
 
 ##SwitchBoard framework:
-    ####PubSub triggers GCF endpoints.
-    ####Trigger endpoints will trigger SwitchBoard GCF via HTTP.
-    ####SwitchBoard contains graph data structure that will trigger appropriate pipelines via HTTP.
+    ####PubSub or http call triggers GCF endpoints.
+    ####Trigger endpoints will trigger SwitchBoard GCF via HTTP using Caller object.
+    ####A destination map is passed to the SwitchBoard object and used to trigger appropriate pipelines via HTTP.
         ###SwitchBoard will reference .json file in cloud storage for any additional dependencies that should be considered.
         ###When a pipeline is triggered a 200 response is returned immediately to identify a successful trigger.
         ###Any failures will exist in logs of pipeline GCF.
-    ####On completion of pipeline GCF, SwitchBoard will be triggered to communicate successful run.
+    ####On completion of pipeline GCF, another caller object triggers the SwitchBoard GCF to communicate successful run.
         ###SwitchBoard will update .json file in cloud storage once successful pipeline run is communicated to it.
 
 
