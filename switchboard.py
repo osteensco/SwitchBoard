@@ -8,10 +8,9 @@ from .utils import http_trigger, init_log
 
 
 # TODO
-    # build out SwitchBoard methods
     ##### BUILD StatusController JSON(s) #####
     ##### SwitchBoard.destinationMap should be passed in as argument from environment variable ##### 
-
+    # build out SwitchBoard run methods
     # build out testing mechanisms
 
 
@@ -58,13 +57,15 @@ class SwitchBoard():
         payload: payload passed from Caller object, used to pass any necessary data to pipeline function
         destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint
     _______________________________________________________________________________
-        payload will need to include the following at minimum:
+        payload will need to include the following at minimum: \n
         {
             sender: '[name of sender here]', \n
+            type: '[name of caller type here]', \n
             data: {[json data structure here]}
         }
  
-    Sender will be used to map the appropriate pipeline to call based on the StatusController object retrieved.
+    Sender and type will be used to map the appropriate pipeline to call based on the destinationMap and confirm if dependencies have been completed based on any statusController 
+    object(s) retrieved.
     '''
     def __init__(self, bucket, payload, destinationMap) -> None:
         self.data = base64.b64decode(payload['data']).decode('utf-8')
@@ -205,9 +206,10 @@ class SwitchBoard():
     ####A destination map is passed to the SwitchBoard object and used to trigger appropriate pipelines via HTTP.
         ###SwitchBoard will reference .json file in cloud storage for any additional dependencies that should be considered.
         ###When a pipeline is triggered a 200 response is returned immediately to identify a successful trigger.
-        ###Any failures will exist in logs of pipeline GCF.
+        ###Any debugging of failures will need logs of pipeline GCF to troubleshoot.
+            ###Best practice should be to implement try/except block(s) with a failure message sent to the SwitchBoard GCF.
     ####On completion of pipeline GCF, another caller object triggers the SwitchBoard GCF to communicate successful run.
-        ###SwitchBoard will update .json file in cloud storage once successful pipeline run is communicated to it.
+        ###If statusController object exists for a pipeline, SwitchBoard will update the .json file in cloud storage once successful pipeline run is communicated to it.
 
 
 ##### Handle concurrent updates on StatusController google cloud storage objects -
