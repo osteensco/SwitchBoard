@@ -1,6 +1,16 @@
-# SwitchBoard
+<h1 align="center">SwitchBoard</h1>
+
+<div align="center">
+  <img src="https://github.com/osteensco/SwitchBoard/assets/86266589/59cf6f81-9bf8-4744-91c6-ac6a569de109"><br>
+</div>
+<br>
+<br>
 
 SwitchBoard is a library designed to be used with severless functions for creating data pipelines and applying orchestration logic.
+
+<br>
+<br>
+
 
 ## What problem does SwitchBoard solve?
 
@@ -13,6 +23,10 @@ SwitchBoard attempts to provide a simplistic option by enabling a development en
 Multiple data pipelines can be built and orchestration managed using the SwitchBoard library all within a monorepo, or multiple if desired.  
   
 Currently, only Python and Google Cloud are supported. There are plans to support other languages and cloud providers in the future.  
+
+<br>
+<br>
+
 ## How does it work?
 
 SwitchBoard is comprised of five main components: **Callers**, **DataSources**, **Pipelines**, **StatusControllers**, and **a SwitchBoard**.  
@@ -23,5 +37,7 @@ SwitchBoard is comprised of five main components: **Callers**, **DataSources**, 
 * On completion, the **Pipeline** will send confirmation to the **SwitchBoard** that it was executed successfully.  
 * The **SwitchBoard** then updates the **StatusController** and identifies any downstream **Pipeline** to execute.  
   
-![Diagram](SwitchBoard.PNG)
 
+<div align="center">
+  <img src="https://github.com/osteensco/SwitchBoard/assets/86266589/8c15c91f-9f3c-4b23-be77-3317b5d5a918"><br>
+</div>
