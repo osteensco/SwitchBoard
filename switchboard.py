@@ -7,9 +7,7 @@ from .gcp import GCP_switchboard
 
 
 # TODO
-    # refactor to allow room for everything to be cloud agnostic
-    # define default schema and allow custom schemas for destinationMap and StatusControllers
-        # provide skeleton .json files
+    # change cloud provider strings to Classes for type hinting and clarity of current state of integrations
     # build out SwitchBoard run methods
     # build out testing mechanisms
 
@@ -25,10 +23,10 @@ class SwitchBoard():
 
     ARGS: 
         cloudProvider: Currently only 'GCP' is supported, future versions will support 'AWS' and 'AZURE'
-        bucket: bucket where StatusController object can be found, use utls.connect_to_status_controller outside of serverless function entrypoint to define bucket variable in global scope
+        bucket: bucket where StatusController object can be found, see utls.connect_to_bucket
         payload: payload passed from Caller object, used to pass any necessary data to pipeline function
         destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint
-    _______________________________________________________________________________
+    \n_______________________________________________________________________________\n
         payload will need to include the following at minimum: \n
         {
             sender: '[name of sender here]', \n
@@ -38,8 +36,66 @@ class SwitchBoard():
  
     Sender and type will be used to map the appropriate pipeline to call based on the destinationMap and confirm if dependencies have been completed based on any statusController 
     object(s) retrieved.
+    \n_______________________________________________________________________________\n
+    Example schema for destinationMap:
+            {
+                'cron'(self.caller_type): {
+                    'daily'(self.caller): {
+                        endpoint: {
+                            name: URL,
+                            name: URL,
+                            name: URL
+                        }
+                    },
+                    'weekly'(self.caller): {
+                        endpoint: {
+                            name: URL,
+                            name: URL,
+                            name: URL
+                        }
+                    }
+                },
+                'webhook'(self.caller_type): {
+                    name(self.caller): {
+                        endpoint: URL
+                    },
+                    name(self.caller): {
+                        endpoint: URL
+                    },
+                    name(self.caller): {
+                        endpoint: URL
+                    }
+                },
+                'pipeline_completion'(self.caller_type): {
+                    name(self.caller): {
+                        endpoint: URL,
+                        dependency: [
+                            pipeline_1,
+                            pipeline_2
+                        ],
+                    },
+                    name(self.caller): {
+                        endpoint: URL,
+                        dependency: [
+                            pipeline_1,
+                            pipeline_2
+                        ]
+                    }
+                }
+            }
+    \n_______________________________________________________________________________\n
+    Example schema for a statusController:
+        {
+            pipeline_name(pipeline_completetion[name(self.caller)][dependency][n]): {
+                completed: true
+            }
+        }
+
+
+
+
     '''
-    def __init__(self, cloud='GCP', bucket: GCP_Bucket=None, payload=None, destinationMap=None) -> None:
+    def __init__(self, cloud='GCP', bucket: GCP_Bucket=None, payload: dict=None, destinationMap: dict=None) -> None:
 
         self.cloud = self.setCloudProvider(cloud)
         self.data = base64.b64decode(payload['data']).decode('utf-8')
@@ -198,6 +254,7 @@ if __name__ == '__main__':
     # The SwitchBoard is always HTTP triggered though.
     # @http_trigger
     def entrypoint(request):
+        from .caller import Caller
         sender = 'daily'
         payload = {'headers': {'APIKEY': '12345'}, 'body':  request['body']}
         caller = Caller(

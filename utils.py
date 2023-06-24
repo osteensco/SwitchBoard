@@ -38,24 +38,34 @@ def init_log():
         logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
-def connect_to_gcp_bucket(bucket_name):
+def connect_to_bucket(cloud_provider, bucket_name):
     '''
-    Connects to google cloud storage bucket.\n
+    Connects to cloud providers object storage bucket.\n
     \n
-    Use in global scope to allow serverless functions to remain open while instances are spun up.
+    Only cloud_provider = 'GCP' is currently supported.
+    \n
+    Use in global scope of serverless functions to allow connection to remain open while instances are spun up.
+    \n
+    Args:\n
+        cloud_provider: Currently only 'GCP' is supported
+        bucket_name: Name of object storage bucket
     '''
-    from google.cloud import storage
-    
-    client = storage.Client()
-    bucket = client.get_bucket(bucket_name)
-    return bucket
+    if cloud_provider == 'GCP':
+        from google.cloud import storage
+        
+        client = storage.Client()
+        bucket = client.get_bucket(bucket_name)
+        return bucket
 
+    # elif cloud_provider == 'AWS':
+    #     return
 
-def connect_to_aws_bucket(bucket_name):
-    return
+    # elif cloud_provider == 'AZURE':
+    #     return
 
-def connect_to_azure_bucket(bucket_name):
-    return
+    else:
+        raise ValueError(f'''{cloud_provider} is not a valid cloud provider option.''')
+
 
 
 

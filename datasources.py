@@ -9,10 +9,19 @@ import logging
 
 
 # TODO
-    # refactor for dependency injection of methods
-        # any method that needs logic specified by child object should be argument passed to Object
-    # look at separating out web scraper and API caller data sources
+    # DataSources provide specific Ingestion or Transformation operations
         # data sources should essentially work like Airflow Operators
+            # goal should be to make DataSources as malleable as possible
+                # ex. BigQuery should take a query string as an argument, which means it can run basically any type of query job
+                # f strings should be used for any dynamic generations (as opposed to something like airflow which uses jinja templating)
+        # some DataSources will be for specific cloud providers, aka BigQuery, RedShift, S3, BlobStorage, etc
+
+    # Additional DataSources:
+        # WebScraper
+        # CallAPI
+        # BigQuery
+        # CloudStorage
+        # etc
 
 
 

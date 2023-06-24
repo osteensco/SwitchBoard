@@ -1,0 +1,45 @@
+{
+    "cron": {
+        "daily": {
+            "endpoint": {
+                "name1": "URL",
+                "name2": "URL",
+                "name3": "URL"
+            }
+        },
+        "weekly": {
+            "endpoint": {
+                "name4": "URL",
+                "name5": "URL",
+                "name6": "URL"
+            }
+        }
+    },
+    "webhook": {
+        "name1": {
+            "endpoint1": "URL"
+        },
+        "name2": {
+            "endpoint2": "URL"
+        },
+        "name3": {
+            "endpoint3": "URL"
+        }
+    },
+    "pipeline_completion": {
+        "name1": {
+            "endpoint": "URL",
+            "dependency": [
+                "pipeline_name3",
+                "pipeline_name4"
+            ]
+        },
+        "name2": {
+            "endpoint": "URL",
+            "dependency": [
+                "pipeline_name5",
+                "pipeline_name6"
+            ]
+        }
+    }
+}
