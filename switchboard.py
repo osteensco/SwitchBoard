@@ -1,49 +1,20 @@
 import base64
-import requests
 import logging
-import json
+from google.cloud.storage.bucket import Bucket as GCP_Bucket
 from .utils import http_trigger, init_log
-
+from .gcp import GCP_switchboard
 
 
 
 # TODO
-    ##### BUILD StatusController JSON(s) #####
-    ##### SwitchBoard.destinationMap should be passed in as argument from environment variable ##### 
+    # refactor to allow room for everything to be cloud agnostic
+    # define default schema and allow custom schemas for destinationMap and StatusControllers
+        # provide skeleton .json files
     # build out SwitchBoard run methods
     # build out testing mechanisms
 
 
-
-
-
-
-
-
-
-class Caller():
-    '''
-    Used for interacting with the SwitchBoard API
-
-    ARGS:
-        switchboard: ENV variable of switchboard endpoint
-        sender: name of sender, used by SwitchBoard to map call to appropriate pipeline
-        payload: data to be ultimately passed to pipeline function
-    '''
-    def __init__(self, switchboard, sender, payload) -> None:
-        self.switchboard = switchboard
-        self.payload = payload
-        self.payload['sender'] = sender
-        init_log()
-
-    def place_call(self):
-        print('call placed to switchboard')
-        # response = requests.post(self.switchboard, json=self.body)
-
-        # if response.status_code == 200:
-        #     logging.info('Switchboard trigger request successful!')
-        # else:
-        #     logging.error('Request failed with status code:', response.status_code)
+##### best practice, SwitchBoard.destinationMap should be passed in as argument from environment variable ##### 
 
 
 
@@ -53,6 +24,7 @@ class SwitchBoard():
     Central control component of the SwitchBoard framework
 
     ARGS: 
+        cloudProvider: Currently only 'GCP' is supported, future versions will support 'AWS' and 'AZURE'
         bucket: bucket where StatusController object can be found, use utls.connect_to_status_controller outside of serverless function entrypoint to define bucket variable in global scope
         payload: payload passed from Caller object, used to pass any necessary data to pipeline function
         destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint
@@ -67,11 +39,13 @@ class SwitchBoard():
     Sender and type will be used to map the appropriate pipeline to call based on the destinationMap and confirm if dependencies have been completed based on any statusController 
     object(s) retrieved.
     '''
-    def __init__(self, bucket, payload, destinationMap) -> None:
+    def __init__(self, cloud='GCP', bucket: GCP_Bucket=None, payload=None, destinationMap=None) -> None:
+
+        self.cloud = self.setCloudProvider(cloud)
         self.data = base64.b64decode(payload['data']).decode('utf-8')
         self.caller = self.data['sender']
         self.caller_type = self.data['type']
-        self.sc_bucket = bucket
+        self.sc_bucket = bucket#    bucket name should always be StatusController
         # self.statusController = self.grabStatus()
         # status controller objects are only needed for data sources that have dependency requirements
         
@@ -132,72 +106,37 @@ class SwitchBoard():
     def receiveCall(self):
         logging.info(f'''Call received from {self.caller}''')
 
+    def setCloudProvider(self, cloudProvider) -> GCP_switchboard:
+        '''
+        cloudProvider = 'GCP'
+        '''
+        if cloudProvider == "GCP":
+            return GCP_switchboard()
+        # elif cloudProvider == "AWS":
+        #     return AWS_switchboard()
+        # elif cloudProvider == "AZURE":
+        #     return AZURE_switchboard()
+        else:
+            raise ValueError(f'''{cloudProvider} is not a valid cloud provider option, only {__doc__} is supported.''')
+
     def grabStatus(self):
-        # read in appropriate json object in cloud storage
-        blobs = self.sc_bucket.list_blobs()
-
-        status_controller = {}
-
-        dependencies = self.destinationMap['pipeline_completion'][self.caller]['dependency']
-
-        for blob in blobs:
-            for dependency in dependencies:
-                if blob.name.startswith(f'''{dependency}_StatusController''') and blob.name.endswith('.json'):
-    
-                    blob_content = blob.download_as_text()
-                    status = json.loads(blob_content)
-                    status_controller.update(status)
-
-        return status_controller
+        self.cloud.grabStatus(self.sc_bucket, self.destinationMap, self.caller)
 
     def grabDestination(self):
-        # determine the correct http endpoint to call from self.destinationMap
-        endpoint_to_call = self.destinationMap[self.caller_type][self.caller]['endpoint']
-        # determine if all dependency conditions are met based on statusController data
-        if not self.statusController:
-            return endpoint_to_call
-        else:
-            if self.statusController[self.caller]['completed']:
-                return endpoint_to_call
-            else:
-                return None
+        self.cloud.grabDestination(self.destinationMap, self.caller_type, self.caller)
 
     def forwardCall(self, endpoint):
-        # send request(s) to identified http endpoint(s) and pass along any relevant data
-        response = requests.post(endpoint, json=self.data)
-
-        if response.status_code == 200:
-            logging.info('Pipeline trigger request successful!')
-        else:
-            logging.error('Pipeline trigger request failed with status code:', response.status_code)
+        self.cloud.forwardCall(endpoint)
 
     @http_trigger
     def receiveConfirmation(self):
-        # called when caller is a completed pipeline function
-        logging.info(f'''{self.caller} pipeline completed successfully''')
+        self.cloud.receiveConfirmation()
 
-    
     def updateStatus(self):
-        # update appropriate json object in cloud storage
-        blob = self.sc_bucket.blob(f'''{self.caller}_StatusController.json''')
-
-        if blob.exists():
-            status_controller = {
-                self.caller: {
-                    'completed': True
-                }
-            }
-            blob.upload_from_string(json.dumps(status_controller), content_type='application/json')
-
-    # def callDownstream(self):
-    #     # will execute workflow steps for calling pipelines triggered by upstream completetions
-    #     return
+        self.cloud.updateStatus(self.sc_bucket, self.caller)
 
     def run(self):
-        # execute switchboard workflow steps
-        return
-
-
+        self.cloud.run()
 
 
 ##SwitchBoard framework:
@@ -243,7 +182,9 @@ class SwitchBoard():
 
 
 
-    # need to setup SwitchBoard library
+
+        ## cloud-switchboard on pypi
+            ## need to register once library is ready enough
         ## git+https://github.com/osteensco/[SwitchBoard].git
         ## pip install -e
             ## this will install the library in "editable mode" allowing changes to the library to be reflected automatically

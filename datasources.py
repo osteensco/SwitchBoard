@@ -12,7 +12,7 @@ import logging
     # refactor for dependency injection of methods
         # any method that needs logic specified by child object should be argument passed to Object
     # look at separating out web scraper and API caller data sources
-        # data sources could essentially work like Airflow Operators
+        # data sources should essentially work like Airflow Operators
 
 
 

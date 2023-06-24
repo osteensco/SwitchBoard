@@ -7,7 +7,10 @@ from switchboard import init_log
 
 
 #TODO
-    # refactor to better handle testing
+    # Pipeline object should provide various data transfer architecture patterns
+        # ETL, ELT, EtLT, EL, etc
+    # Pipeline object should include dry run/testing capabilities
+    # Pipeline object handles logging
 
 
 
