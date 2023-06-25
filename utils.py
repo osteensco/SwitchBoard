@@ -1,3 +1,69 @@
+from google.cloud.storage.bucket import Bucket as GCP_Bucket
+
+
+
+
+
+
+class CloudType:
+    '''
+    Base class for establishing cloud provider types.
+    '''
+    def __init__(self) -> None:
+        self.name = self.__class__.__name__
+
+
+class GCP(CloudType):
+    '''
+    Google Cloud Platform
+    '''
+    def __init__(self) -> None:
+        super().__init__()
+
+# class AWS(CloudType):
+    # '''
+    # Amazon Web Services
+    # '''
+#     def __init__(self) -> None:
+#         super().__init__()
+
+# class AZURE(CloudType):
+    # '''
+    # Microsoft Azure
+    # '''
+#     def __init__(self) -> None:
+#         super().__init__()
+
+
+
+
+
+
+class CloudProvider:
+    '''
+    Base class for establishing all methods needed for the SwitchBoard, agnostic of the cloud provider.\n
+    \n
+    Methods: \n
+    grabStatus, grabDestination, forwardCall, receiveConfirmation, updateStatus, run
+    '''
+    def grabStatus(self, *args, **kwargs):
+        raise NotImplementedError("Subclasses must implement grabStatus()")
+
+    def grabDestination(self, *args, **kwargs):
+        raise NotImplementedError("Subclasses must implement grabDestination()")
+
+    def forwardCall(self, *args, **kwargs):
+        raise NotImplementedError("Subclasses must implement forwardCall()")
+
+    def receiveConfirmation(self):
+        raise NotImplementedError("Subclasses must implement receiveConfirmation()")
+
+    def updateStatus(self, *args, **kwargs):
+        raise NotImplementedError("Subclasses must implement updateStatus()")
+
+    def run(self):
+        raise NotImplementedError("Subclasses must implement run()")
+
 
 
 
@@ -38,19 +104,18 @@ def init_log():
         logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
-def connect_to_bucket(cloud_provider, bucket_name):
+def connect_to_bucket(cloud_provider: GCP, bucket_name: str) -> GCP_Bucket:
     '''
     Connects to cloud providers object storage bucket.\n
     \n
-    Only cloud_provider = 'GCP' is currently supported.
-    \n
     Use in global scope of serverless functions to allow connection to remain open while instances are spun up.
     \n
-    Args:\n
-        cloud_provider: Currently only 'GCP' is supported
+    ARGS:\n
+        cloud_provider: Currently only :class:`GCP` is supported
         bucket_name: Name of object storage bucket
     '''
-    if cloud_provider == 'GCP':
+    if cloud_provider is GCP:
+
         from google.cloud import storage
         
         client = storage.Client()
@@ -73,30 +138,22 @@ def connect_to_bucket(cloud_provider, bucket_name):
 
 
 
-class CloudProvider:
-    '''
-    Base class for establishing all methods needed for the SwitchBoard, agnostic of the cloud provider.\n
-    \n
-    Methods: \n
-    grabStatus, grabDestination, forwardCall, receiveConfirmation, updateStatus, run
-    '''
-    def grabStatus(self, *args, **kwargs):
-        raise NotImplementedError("Subclasses must implement grabStatus()")
 
-    def grabDestination(self, *args, **kwargs):
-        raise NotImplementedError("Subclasses must implement grabDestination()")
 
-    def forwardCall(self, *args, **kwargs):
-        raise NotImplementedError("Subclasses must implement forwardCall()")
 
-    def receiveConfirmation(self):
-        raise NotImplementedError("Subclasses must implement receiveConfirmation()")
 
-    def updateStatus(self, *args, **kwargs):
-        raise NotImplementedError("Subclasses must implement updateStatus()")
 
-    def run(self):
-        raise NotImplementedError("Subclasses must implement run()")
+
+
+
+
+
+
+if __name__ == '__main__':
+    connect_to_bucket(GCP, 'bucket')
+
+
+
 
 
 

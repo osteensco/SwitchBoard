@@ -1,13 +1,12 @@
 import base64
 import logging
 from google.cloud.storage.bucket import Bucket as GCP_Bucket
-from .utils import http_trigger, init_log
+from .utils import http_trigger, init_log, GCP
 from .gcp import GCP_switchboard
 
 
 
 # TODO
-    # change cloud provider strings to Classes for type hinting and clarity of current state of integrations
     # build out SwitchBoard run methods
     # build out testing mechanisms
 
@@ -22,7 +21,7 @@ class SwitchBoard():
     Central control component of the SwitchBoard framework
 
     ARGS: 
-        cloudProvider: Currently only 'GCP' is supported, future versions will support 'AWS' and 'AZURE'
+        cloudProvider: Currently only :class:`GCP` is supported, future versions will support :class:`AWS` and :class:`AZURE`
         bucket: bucket where StatusController object can be found, see utls.connect_to_bucket
         payload: payload passed from Caller object, used to pass any necessary data to pipeline function
         destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint
@@ -95,7 +94,7 @@ class SwitchBoard():
 
 
     '''
-    def __init__(self, cloud='GCP', bucket: GCP_Bucket=None, payload: dict=None, destinationMap: dict=None) -> None:
+    def __init__(self, cloud=GCP, bucket: GCP_Bucket=None, payload: dict=None, destinationMap: dict=None) -> None:
 
         self.cloud = self.setCloudProvider(cloud)
         self.data = base64.b64decode(payload['data']).decode('utf-8')
@@ -164,9 +163,9 @@ class SwitchBoard():
 
     def setCloudProvider(self, cloudProvider) -> GCP_switchboard:
         '''
-        cloudProvider = 'GCP'
+        cloudProvider = GCP
         '''
-        if cloudProvider == "GCP":
+        if cloudProvider is GCP:
             return GCP_switchboard()
         # elif cloudProvider == "AWS":
         #     return AWS_switchboard()
