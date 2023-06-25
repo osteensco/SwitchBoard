@@ -30,7 +30,7 @@ class GCP_switchboard(CloudProvider):
             for dependency in dependencies:
                 if blob.name.startswith(f'''{dependency}_StatusController''') and blob.name.endswith('.json'):
     
-                    blob_content = blob.download_as_text()
+                    blob_content = blob.download_as_string()
                     status = json.loads(blob_content)
                     status_controller.update(status)
 
