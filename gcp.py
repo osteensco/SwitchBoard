@@ -9,6 +9,10 @@ from .utils import CloudProvider
 
 
 class GCP_switchboard(CloudProvider):
+    '''
+    Google Cloud Platform SwitchBoard object.
+    '''
+
     def __init__(self):
         super().__init__()
 
@@ -30,23 +34,26 @@ class GCP_switchboard(CloudProvider):
                     status = json.loads(blob_content)
                     status_controller.update(status)
 
+        if status_controller == {}:
+            return None
+        
         return status_controller
 
-    def grabDestination(self, destinationMap, callerType, caller):
+    def grabDestination(self, statusController, destinationMap, callerType, caller):
         # determine the correct http endpoint to call from self.destinationMap
         endpoint_to_call = destinationMap[callerType][caller]['endpoint']
         # determine if all dependency conditions are met based on statusController data
-        if not self.statusController:
+        if not statusController:
             return endpoint_to_call
         else:
-            if self.statusController[self.caller]['completed']:
+            if statusController[caller]['completed']:
                 return endpoint_to_call
             else:
                 return None
 
-    def forwardCall(self, endpoint):
+    async def forwardCall(self, endpoint):
         # send request(s) to identified http endpoint(s) and pass along any relevant data
-        response = requests.post(endpoint, json=self.data)
+        response = await requests.post(endpoint, json=self.data)
 
         if response.status_code == 200:
             logging.info('Pipeline trigger request successful!')
@@ -54,9 +61,9 @@ class GCP_switchboard(CloudProvider):
             logging.error('Pipeline trigger request failed with status code:', response.status_code)
 
     
-    def receiveConfirmation(self):
+    def receiveConfirmation(self, caller):
         # called when caller is a completed pipeline function
-        logging.info(f'''{self.caller} pipeline completed successfully''')
+        logging.info(f'''{caller} pipeline completed successfully''')
 
     
     def updateStatus(self, bucket, caller):
@@ -71,13 +78,7 @@ class GCP_switchboard(CloudProvider):
             }
             blob.upload_from_string(json.dumps(status_controller), content_type='application/json')
 
-    # def callDownstream(self):
-    #     # will execute workflow steps for calling pipelines triggered by upstream completetions
-    #     return
 
-    def run(self):
-        # execute switchboard workflow steps
-        return
 
 
 

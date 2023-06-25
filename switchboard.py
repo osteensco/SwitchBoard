@@ -7,11 +7,12 @@ from .gcp import GCP_switchboard
 
 
 # TODO
-    # build out SwitchBoard run methods
-    # build out testing mechanisms
+
+    # build out unit tests
 
 
-##### best practice, SwitchBoard.destinationMap should be passed in as argument from environment variable ##### 
+
+
 
 
 
@@ -34,54 +35,59 @@ class SwitchBoard():
         }
  
     Sender and type will be used to map the appropriate pipeline to call based on the destinationMap and confirm if dependencies have been completed based on any statusController 
-    object(s) retrieved.
+    object(s) retrieved.\n
+    As a best practice, destinationMap should be passed in from an environment variable
     \n_______________________________________________________________________________\n
     Example schema for destinationMap:
-            {
-                'cron'(self.caller_type): {
-                    'daily'(self.caller): {
-                        endpoint: {
-                            name: URL,
-                            name: URL,
-                            name: URL
-                        }
-                    },
-                    'weekly'(self.caller): {
-                        endpoint: {
-                            name: URL,
-                            name: URL,
-                            name: URL
-                        }
+        {
+            "cron": {
+                "daily": {
+                    "endpoint": {
+                        "name1": "URL",
+                        "name2": "URL",
+                        "name3": "URL"
                     }
                 },
-                'webhook'(self.caller_type): {
-                    name(self.caller): {
-                        endpoint: URL
-                    },
-                    name(self.caller): {
-                        endpoint: URL
-                    },
-                    name(self.caller): {
-                        endpoint: URL
-                    }
-                },
-                'pipeline_completion'(self.caller_type): {
-                    name(self.caller): {
-                        endpoint: URL,
-                        dependency: [
-                            pipeline_1,
-                            pipeline_2
-                        ],
-                    },
-                    name(self.caller): {
-                        endpoint: URL,
-                        dependency: [
-                            pipeline_1,
-                            pipeline_2
-                        ]
+                "weekly": {
+                    "endpoint": {
+                        "name4": "URL",
+                        "name5": "URL",
+                        "name6": "URL"
                     }
                 }
+            },
+            "webhook": {
+                "name1": {
+                    "endpoint": "URL"
+                },
+                "name2": {
+                    "endpoint": "URL"
+                },
+                "name3": {
+                    "endpoint": "URL"
+                }
+            },
+            "pipeline_completion": {
+                "name1": {
+                    "endpoint": "URL",
+                    "dependency": [
+                        "pipeline_name3",
+                        "pipeline_name4"
+                    ]
+                },
+                "name2": {
+                    "endpoint": {
+                "name1": "URL",
+                "name2": "URL",
+                "name3": "URL"
+            },
+                    "dependency": [
+                        "pipeline_name5",
+                        "pipeline_name6"
+                    ]
+                }
             }
+        }
     \n_______________________________________________________________________________\n
     Example schema for a statusController:
         {
@@ -94,14 +100,14 @@ class SwitchBoard():
 
 
     '''
-    def __init__(self, cloud=GCP, bucket: GCP_Bucket=None, payload: dict=None, destinationMap: dict=None) -> None:
+    def __init__(self, cloud: GCP=GCP, bucket: GCP_Bucket | None=None, payload: dict=None, destinationMap: dict=None) -> None:
 
         self.cloud = self.setCloudProvider(cloud)
         self.data = base64.b64decode(payload['data']).decode('utf-8')
         self.caller = self.data['sender']
         self.caller_type = self.data['type']
         self.sc_bucket = bucket#    bucket name should always be StatusController
-        # self.statusController = self.grabStatus()
+        self.statusController = None
         # status controller objects are only needed for data sources that have dependency requirements
         
         # {
@@ -161,9 +167,28 @@ class SwitchBoard():
     def receiveCall(self):
         logging.info(f'''Call received from {self.caller}''')
 
-    def setCloudProvider(self, cloudProvider) -> GCP_switchboard:
+
+    def grabDependencies(self):
+        if self.caller_type == 'pipeline_completion':
+            return self.destinationMap[self.caller_type][self.caller]['dependency']
+        else:
+            return None
+
+
+    def checkDependencies(self, dependencies, endpoint) -> bool:
+        if dependencies:
+            for name in dependencies:
+                if self.statusController[name]["completed"]:
+                    continue
+                else:
+                    logging.info(f'''{endpoint} dependency not met''')
+                    return False
+        return True
+
+
+    def setCloudProvider(self, cloudProvider: GCP) -> GCP_switchboard:
         '''
-        cloudProvider = GCP
+        Mapping function for cloud providers SwitchBoard is integrated with.
         '''
         if cloudProvider is GCP:
             return GCP_switchboard()
@@ -174,24 +199,49 @@ class SwitchBoard():
         else:
             raise ValueError(f'''{cloudProvider} is not a valid cloud provider option, only {__doc__} is supported.''')
 
-    def grabStatus(self):
+
+
+    def grabStatus(self) -> dict:
         self.cloud.grabStatus(self.sc_bucket, self.destinationMap, self.caller)
 
-    def grabDestination(self):
-        self.cloud.grabDestination(self.destinationMap, self.caller_type, self.caller)
+    def grabDestination(self) -> dict | str:
+        self.cloud.grabDestination(self.statusController, self.destinationMap, self.caller_type, self.caller)
 
-    def forwardCall(self, endpoint):
-        self.cloud.forwardCall(endpoint)
+    async def forwardCall(self, endpoint):
+        await self.cloud.forwardCall(endpoint)
 
     @http_trigger
     def receiveConfirmation(self):
-        self.cloud.receiveConfirmation()
+        self.cloud.receiveConfirmation(self.caller)
 
     def updateStatus(self):
         self.cloud.updateStatus(self.sc_bucket, self.caller)
 
-    def run(self):
-        self.cloud.run()
+    async def run(self):
+        self.receiveCall()
+        if self.caller_type == 'pipeline_completion':
+            self.receiveConfirmation()
+            self.updateStatus()
+
+        self.statusController = self.grabStatus()
+        endpoint = self.grabDestination()
+        dependencies = self.grabDependencies()
+
+        if type(endpoint) is dict:
+            for key in endpoint.keys():
+                if self.checkDependencies(dependencies, key):
+                    await self.forwardCall(endpoint[key])
+        elif type(endpoint) is str:
+            if self.checkDependencies(dependencies, endpoint):
+                await self.forwardCall(endpoint)
+        else:
+            raise TypeError(f'''{type(endpoint)} Type not supported, endpoint must be dict or str''')
+
+
+
+
+
+
 
 
 ##SwitchBoard framework:

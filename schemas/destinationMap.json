@@ -17,13 +17,13 @@
     },
     "webhook": {
         "name1": {
-            "endpoint1": "URL"
+            "endpoint": "URL"
         },
         "name2": {
-            "endpoint2": "URL"
+            "endpoint": "URL"
         },
         "name3": {
-            "endpoint3": "URL"
+            "endpoint": "URL"
         }
     },
     "pipeline_completion": {
@@ -35,7 +35,11 @@
             ]
         },
         "name2": {
-            "endpoint": "URL",
+            "endpoint": {
+                "name1": "URL",
+                "name2": "URL",
+                "name3": "URL"
+            },
             "dependency": [
                 "pipeline_name5",
                 "pipeline_name6"
