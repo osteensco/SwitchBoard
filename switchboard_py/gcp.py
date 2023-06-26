@@ -2,6 +2,7 @@
 import json
 import requests
 import logging
+from google.cloud.storage.bucket import Bucket
 from .utils import CloudProvider
 
 
@@ -28,7 +29,7 @@ class GCP_switchboard(CloudProvider):
 
         for blob in blobs:
             for dependency in dependencies:
-                if blob.name.startswith(f'''{dependency}_StatusController''') and blob.name.endswith('.json'):
+                if blob.name.startswith(f'''{dependency}''') and blob.name.endswith('.json'):
     
                     blob_content = blob.download_as_string()
                     status = json.loads(blob_content)
@@ -66,14 +67,14 @@ class GCP_switchboard(CloudProvider):
         logging.info(f'''{caller} pipeline completed successfully''')
 
     
-    def updateStatus(self, bucket, caller, completedStatusKey):
+    def updateStatus(self, bucket: Bucket, caller: str, completedStatusKey: str, status: bool):
         # update appropriate json object in cloud storage
-        blob = bucket.blob(f'''{caller}_StatusController.json''')
+        blob = bucket.blob(f'''{caller}.json''')
 
         if blob.exists():
             status_controller = {
                 caller: {
-                    completedStatusKey: True
+                    completedStatusKey: status
                 }
             }
             blob.upload_from_string(json.dumps(status_controller), content_type='application/json')

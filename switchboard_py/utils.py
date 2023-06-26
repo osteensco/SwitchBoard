@@ -104,7 +104,7 @@ def init_log():
         logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
-def connect_to_bucket(cloud_provider: GCP, bucket_name: str) -> GCP_Bucket:
+def connect_to_bucket(cloud_provider: GCP, bucket_name: str = 'StatusController') -> GCP_Bucket:
     '''
     Connects to cloud providers object storage bucket.\n
     \n
@@ -112,7 +112,7 @@ def connect_to_bucket(cloud_provider: GCP, bucket_name: str) -> GCP_Bucket:
     \n
     ARGS:\n
         cloud_provider: Currently only :class:`GCP` is supported
-        bucket_name: Name of object storage bucket
+        bucket_name: Default `'StatusController'`, name of object storage bucket 
     '''
     if cloud_provider is GCP:
 

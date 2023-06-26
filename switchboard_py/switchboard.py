@@ -7,7 +7,6 @@ from .gcp import GCP_switchboard
 
 
 # TODO
-    # add method to reset StatusController back to False once downstream pipeline(s) run
     # build out unit tests
 
 
@@ -125,65 +124,13 @@ class SwitchBoard():
         self.caller = self.data['caller']
         self.caller_type = self.data['type']
         self.caller_dict = destinationMap[self.caller_type][self.caller]
-        self.sc_bucket = bucket#    bucket name should always be StatusController
+        self.sc_bucket = bucket
         self.completion_caller_type = callerCompletionKey
         self.dependency_key = dependencyKey
         self.completed_status_key = statusControllerCompletedKey
         self.endpoint_key = endpointKey
         self.statusController = None
-        # status controller objects are only needed for data sources that have dependency requirements
-        
-        # {
-        #       pipeline_name(pipeline_completetion[name(self.caller)][dependency][n]): {
-        #           completed: true
-        #       }
-        # }
         self.destinationMap = destinationMap
-        # {
-        #       'cron'(self.caller_type): {
-        #           'daily'(self.caller): {
-        #               endpoint: {
-        #                   name: URL,
-        #                   name: URL,
-        #                   name: URL
-        #               }
-        #           },
-        #           'weekly'(self.caller): {
-        #               endpoint: {
-        #                   name: URL,
-        #                   name: URL,
-        #                   name: URL
-        #               }
-        #           }
-        #       },
-        #       'webhook'(self.caller_type): {
-        #           name(self.caller): {
-        #               endpoint: URL
-        #           },
-        #           name(self.caller): {
-        #               endpoint: URL
-        #           },
-        #           name(self.caller): {
-        #               endpoint: URL
-        #           }
-        #       },
-        #       'pipeline_completion'(self.caller_type): {
-        #           name(self.caller): {
-        #               endpoint: URL,
-        #               dependency: [
-        #                   pipeline_1,
-        #                   pipeline_2
-        #               ],
-        #           },
-        #           name(self.caller): {
-        #               endpoint: URL,
-        #               dependency: [
-        #                   pipeline_1,
-        #                   pipeline_2
-        #               ]
-        #           }
-        #       }
-        # }
         init_log()
 
     @http_trigger
@@ -237,14 +184,20 @@ class SwitchBoard():
     def receiveConfirmation(self):
         self.cloud.receiveConfirmation(self.caller)
 
-    def updateStatus(self):
-        self.cloud.updateStatus(self.sc_bucket, self.caller, self.completed_status_key)
+    def updateStatus(self, caller, status):
+        self.cloud.updateStatus(self.sc_bucket, caller, self.completed_status_key, status)
 
     async def run(self):
+        
         self.receiveCall()
+
         if self.caller_type == self.completion_caller_type:
             self.receiveConfirmation()
-            self.updateStatus()
+            self.updateStatus(self.caller, True)
+
+        if self.dependency_key in self.caller_dict:
+            for pipeline in self.caller_dict[self.dependency_key]:
+                self.updateStatus(pipeline, False)
 
         self.statusController = self.grabStatus()
         endpoint = self.grabDestination()
