@@ -24,10 +24,10 @@ class Pipeline:
         init_log()
 
     def run(self):
-        df = None
+        data = None
         for obj in self.data_objs:
-            obj.invoke(df)
-            df = obj.df
+            obj.invoke(data)
+            data = obj.data
 
 
 

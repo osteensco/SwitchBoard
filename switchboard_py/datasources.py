@@ -16,12 +16,8 @@ import logging
                 # f strings should be used for any dynamic generations (as opposed to something like airflow which uses jinja templating)
         # some DataSources will be for specific cloud providers, aka BigQuery, RedShift, S3, BlobStorage, etc
 
-    # Additional DataSources:
-        # WebScraper
-        # CallAPI
-        # BigQuery
-        # CloudStorage
-        # etc
+    # DataSources that aren't single use case like WebScraper need jobType variable to help map specific functionalities
+        # the invoke method will be called by the pipeline
 
 
 
@@ -30,10 +26,16 @@ class DataSource:
     Base class used for developing DataSources that are fed into a Pipeline object.
     '''
     def __init__(self) -> None:
-        self.df = pd.DataFrame()
+        self.data = None
 
+    def receiveData(self, data):
+        if data:
+            return data
+        else:
+            return {}
 
-
+    def invoke(self, data: dict | None):
+        self.data = self.receiveData(data)
 
 
 
@@ -55,7 +57,8 @@ class WebScraper(DataSource):
             logging.error(getattr(ex, 'message', repr(ex)))
         return r
 
-
+    def invoke(self, data: dict | None):
+        super().invoke(data)
 
 
 
@@ -64,30 +67,57 @@ class CallAPI(DataSource):
         super().__init__()
         pass
 
-
+    def invoke(self, data: dict | None):
+        super().invoke(data)
 
 
 
 
 class BigQuery(DataSource):
-    def __init__(self, project_id, sql_string) -> None:
+#bigquery jobType should help map specific BigQuery operations
+    #sql, load, insert
+    def __init__(self, projectId, sqlString, jobType) -> None:
         super().__init__()
-        self.job = sql_string
-        self.client = bigquery.Client(project_id)
-        self.run(self.client, self.job)
+        self.job = sqlString
+        self.client = bigquery.Client(projectId)
+
 
     def run(self, client, sql):
         client(sql).result()
 
-
+    def invoke(self, data: dict | None):
+        super().invoke(data)
+        self.run(self.client, self.job)
 
 
 
 
 class CloudStorage(DataSource):
-    def __init__(self) -> None:
+    def __init__(self, bucket, blobName, jobType) -> None:
         super().__init__()
         pass
+
+    def invoke(self, data: dict | None):
+        super().invoke(data)
+
+
+
+
+class PandasDF(DataSource):
+    def __init__(self, transformations: list[function]) -> None:
+        super().__init__()
+        self.df = pd.DataFrame()
+        self.transformSteps = transformations
+
+    def invoke(self, data: dict | None):
+        super().invoke(data)
+        self.df = pd.DataFrame.from_dict(data)
+        for f in self.transformSteps:
+            f(self.df)
+
+
+
+
 
 
 
