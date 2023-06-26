@@ -7,7 +7,7 @@ from .gcp import GCP_switchboard
 
 
 # TODO
-
+    # add method to reset StatusController back to False once downstream pipeline(s) run
     # build out unit tests
 
 
@@ -22,11 +22,14 @@ class SwitchBoard():
     Central control component of the SwitchBoard framework
 
     ARGS: 
-        cloudProvider: Currently only :class:`GCP` is supported, future versions will support :class:`AWS` and :class:`AZURE`
-        bucket: bucket where StatusController object can be found, see utls.connect_to_bucket
-        payload: payload passed from Caller object, used to pass any necessary data to pipeline function
-        destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint
-        completionKey: default 'pipeline_completion', caller_type key in the destinationMap that is defined as the caller type sent from Pipeline Caller objects
+        cloudProvider: Currently only :class:`GCP` is supported, future versions will support :class:`AWS` and :class:`AZURE`\n
+        bucket: bucket where StatusController object can be found, see utls.connect_to_bucket\n
+        payload: payload passed from Caller object, used to pass any necessary data to pipeline function\n
+        destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint\n
+        callerCompletionKey: default `'pipeline_completion'`, caller_type key in the destinationMap that is defined as the caller type sent from Pipeline Caller objects\n
+        dependencyKey: default `'dependency'`, key within destinationMap['caller_type']['caller'] used to identify list of pipeline (caller) dependency names\n
+        statusControllerCompletedKey: default `'completed'`, key within StatusController object set to boolean value that identifies if a given pipeline (caller) has been completed\n
+        enpointKey: default `'endpoint'`, key within destinationMap['caller_type']['caller'] used to identify a pipeline's endpoint URL
     \n_______________________________________________________________________________\n
         payload will need to include the following at minimum: \n
         {
@@ -105,7 +108,17 @@ class SwitchBoard():
 
 
     '''
-    def __init__(self, cloud: GCP=GCP, bucket: GCP_Bucket | None=None, payload: dict=None, destinationMap: dict=None, completionKey: str = 'pipeline_completion') -> None:
+    def __init__(
+            self, 
+            cloud: GCP=GCP, 
+            bucket: GCP_Bucket | None=None, 
+            payload: dict=None, 
+            destinationMap: dict=None, 
+            callerCompletionKey: str = 'pipeline_completion', 
+            dependencyKey: str = 'dependency',
+            statusControllerCompletedKey: str = 'completed',
+            endpointKey: str = 'endpoint'
+        ) -> None:
 
         self.cloud = self.setCloudProvider(cloud)
         self.data = base64.b64decode(payload['data']).decode('utf-8')
@@ -113,7 +126,10 @@ class SwitchBoard():
         self.caller_type = self.data['type']
         self.caller_dict = destinationMap[self.caller_type][self.caller]
         self.sc_bucket = bucket#    bucket name should always be StatusController
-        self.completion_caller_type = completionKey
+        self.completion_caller_type = callerCompletionKey
+        self.dependency_key = dependencyKey
+        self.completed_status_key = statusControllerCompletedKey
+        self.endpoint_key = endpointKey
         self.statusController = None
         # status controller objects are only needed for data sources that have dependency requirements
         
@@ -176,8 +192,8 @@ class SwitchBoard():
 
 
     def grabDependencies(self):
-        if 'dependency' in self.caller_dict:
-            return self.caller_dict['dependency']
+        if self.dependency_key in self.caller_dict:
+            return self.caller_dict[self.dependency_key]
         else:
             return None
 
@@ -185,7 +201,7 @@ class SwitchBoard():
     def checkDependencies(self, dependencies, endpoint) -> bool:
         if dependencies:
             for name in dependencies:
-                if self.statusController[name]["completed"]:
+                if self.statusController[name][self.completed_status_key]:
                     continue
                 else:
                     logging.info(f'''{endpoint} dependency not met''')
@@ -209,10 +225,10 @@ class SwitchBoard():
 
 
     def grabStatus(self) -> dict:
-        self.cloud.grabStatus(self.sc_bucket, self.caller_dict, self.caller)
+        self.cloud.grabStatus(self.sc_bucket, self.caller_dict, self.dependency_key)
 
     def grabDestination(self) -> dict | str:
-        self.cloud.grabDestination(self.statusController, self.caller_dict, self.caller)
+        self.cloud.grabDestination(self.statusController, self.caller_dict, self.caller, self.completed_status_key, self.endpoint_key)
 
     async def forwardCall(self, endpoint):
         await self.cloud.forwardCall(endpoint)
@@ -222,7 +238,7 @@ class SwitchBoard():
         self.cloud.receiveConfirmation(self.caller)
 
     def updateStatus(self):
-        self.cloud.updateStatus(self.sc_bucket, self.caller)
+        self.cloud.updateStatus(self.sc_bucket, self.caller, self.completed_status_key)
 
     async def run(self):
         self.receiveCall()

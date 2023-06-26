@@ -18,13 +18,13 @@ class GCP_switchboard(CloudProvider):
 
 
 
-    def grabStatus(self, bucket, callerDict, caller) -> dict:
+    def grabStatus(self, bucket, callerDict, dependencyKey) -> dict:
         
         blobs = bucket.list_blobs()
 
         status_controller = {}
 
-        dependencies = callerDict['dependency']
+        dependencies = callerDict[dependencyKey]
 
         for blob in blobs:
             for dependency in dependencies:
@@ -39,14 +39,14 @@ class GCP_switchboard(CloudProvider):
         
         return status_controller
 
-    def grabDestination(self, statusController, callerDict, caller):
+    def grabDestination(self, statusController, callerDict, caller, completedStatusKey, endpointKey):
         # determine the correct http endpoint to call from self.destinationMap
-        endpoint_to_call = callerDict['endpoint']
+        endpoint_to_call = callerDict[endpointKey]
         # determine if all dependency conditions are met based on statusController data
         if not statusController:
             return endpoint_to_call
         else:
-            if statusController[caller]['completed']:
+            if statusController[caller][completedStatusKey]:
                 return endpoint_to_call
             else:
                 return None
@@ -66,14 +66,14 @@ class GCP_switchboard(CloudProvider):
         logging.info(f'''{caller} pipeline completed successfully''')
 
     
-    def updateStatus(self, bucket, caller):
+    def updateStatus(self, bucket, caller, completedStatusKey):
         # update appropriate json object in cloud storage
         blob = bucket.blob(f'''{caller}_StatusController.json''')
 
         if blob.exists():
             status_controller = {
                 caller: {
-                    'completed': True
+                    completedStatusKey: True
                 }
             }
             blob.upload_from_string(json.dumps(status_controller), content_type='application/json')
