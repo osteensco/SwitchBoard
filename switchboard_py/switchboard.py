@@ -26,6 +26,7 @@ class SwitchBoard():
         bucket: bucket where StatusController object can be found, see utls.connect_to_bucket
         payload: payload passed from Caller object, used to pass any necessary data to pipeline function
         destinationMap: ENV variable containing json structure used to map sender (self.caller) to appropriate pipeline endpoint
+        completionKey: default 'pipeline_completion', caller_type key in the destinationMap that is defined as the caller type sent from Pipeline Caller objects
     \n_______________________________________________________________________________\n
         payload will need to include the following at minimum: \n
         {
@@ -38,6 +39,10 @@ class SwitchBoard():
     object(s) retrieved.\n
     As a best practice, destinationMap should be passed in from an environment variable
     \n_______________________________________________________________________________\n
+    The destinationMap needs to utilize the following base schema in order for the SwitchBoard to map calls successfully:\n
+    destinationMap['caller_type']['caller']\n
+    This is used to map the SwitchBoard.caller_dict attribute.\n
+
     Example schema for destinationMap:
         {
             "cron": {
@@ -91,7 +96,7 @@ class SwitchBoard():
     \n_______________________________________________________________________________\n
     Example schema for a statusController:
         {
-            pipeline_name(pipeline_completetion[name(self.caller)][dependency][n]): {
+            pipeline_name: {
                 completed: true
             }
         }
@@ -100,7 +105,7 @@ class SwitchBoard():
 
 
     '''
-    def __init__(self, cloud: GCP=GCP, bucket: GCP_Bucket | None=None, payload: dict=None, destinationMap: dict=None) -> None:
+    def __init__(self, cloud: GCP=GCP, bucket: GCP_Bucket | None=None, payload: dict=None, destinationMap: dict=None, completionKey: str = 'pipeline_completion') -> None:
 
         self.cloud = self.setCloudProvider(cloud)
         self.data = base64.b64decode(payload['data']).decode('utf-8')
@@ -108,6 +113,7 @@ class SwitchBoard():
         self.caller_type = self.data['type']
         self.caller_dict = destinationMap[self.caller_type][self.caller]
         self.sc_bucket = bucket#    bucket name should always be StatusController
+        self.completion_caller_type = completionKey
         self.statusController = None
         # status controller objects are only needed for data sources that have dependency requirements
         
@@ -220,7 +226,7 @@ class SwitchBoard():
 
     async def run(self):
         self.receiveCall()
-        if self.caller_type == 'pipeline_completion':
+        if self.caller_type == self.completion_caller_type:
             self.receiveConfirmation()
             self.updateStatus()
 
