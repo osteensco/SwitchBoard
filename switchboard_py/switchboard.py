@@ -29,7 +29,7 @@ class SwitchBoard():
     \n_______________________________________________________________________________\n
         payload will need to include the following at minimum: \n
         {
-            sender: '[name of sender here]', \n
+            caller: '[name of sender here]', \n
             type: '[name of caller type here]', \n
             data: {[json data structure here]}
         }
@@ -104,8 +104,9 @@ class SwitchBoard():
 
         self.cloud = self.setCloudProvider(cloud)
         self.data = base64.b64decode(payload['data']).decode('utf-8')
-        self.caller = self.data['sender']
+        self.caller = self.data['caller']
         self.caller_type = self.data['type']
+        self.caller_dict = destinationMap[self.caller_type][self.caller]
         self.sc_bucket = bucket#    bucket name should always be StatusController
         self.statusController = None
         # status controller objects are only needed for data sources that have dependency requirements
@@ -169,8 +170,8 @@ class SwitchBoard():
 
 
     def grabDependencies(self):
-        if self.caller_type == 'pipeline_completion':
-            return self.destinationMap[self.caller_type][self.caller]['dependency']
+        if 'dependency' in self.caller_dict:
+            return self.caller_dict['dependency']
         else:
             return None
 
@@ -197,15 +198,15 @@ class SwitchBoard():
         # elif cloudProvider == "AZURE":
         #     return AZURE_switchboard()
         else:
-            raise ValueError(f'''{cloudProvider} is not a valid cloud provider option, only {__doc__} is supported.''')
+            raise ValueError(f'''{cloudProvider} is not a valid cloud provider option, only {GCP} is supported.''')
 
 
 
     def grabStatus(self) -> dict:
-        self.cloud.grabStatus(self.sc_bucket, self.destinationMap, self.caller)
+        self.cloud.grabStatus(self.sc_bucket, self.caller_dict, self.caller)
 
     def grabDestination(self) -> dict | str:
-        self.cloud.grabDestination(self.statusController, self.destinationMap, self.caller_type, self.caller)
+        self.cloud.grabDestination(self.statusController, self.caller_dict, self.caller)
 
     async def forwardCall(self, endpoint):
         await self.cloud.forwardCall(endpoint)

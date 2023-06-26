@@ -18,13 +18,13 @@ class GCP_switchboard(CloudProvider):
 
 
 
-    def grabStatus(self, bucket, destinationMap, caller) -> dict:
+    def grabStatus(self, bucket, callerDict, caller) -> dict:
         
         blobs = bucket.list_blobs()
 
         status_controller = {}
 
-        dependencies = destinationMap['pipeline_completion'][caller]['dependency']
+        dependencies = callerDict['dependency']
 
         for blob in blobs:
             for dependency in dependencies:
@@ -39,9 +39,9 @@ class GCP_switchboard(CloudProvider):
         
         return status_controller
 
-    def grabDestination(self, statusController, destinationMap, callerType, caller):
+    def grabDestination(self, statusController, callerDict, caller):
         # determine the correct http endpoint to call from self.destinationMap
-        endpoint_to_call = destinationMap[callerType][caller]['endpoint']
+        endpoint_to_call = callerDict['endpoint']
         # determine if all dependency conditions are met based on statusController data
         if not statusController:
             return endpoint_to_call
