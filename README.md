@@ -34,7 +34,7 @@ SwitchBoard is comprised of five main components: **Callers**, **DataSources**, 
   
 * A **Caller** is created and passes caller information to the **SwitchBoard**.  
 * The **SwitchBoard** will determine the appropriate **Pipeline** to execute and reference the **StatusController** to verify the dependency requirements, if any, have been met.  
-* The **Pipeline** will use a specific **DataSource** to perform the specified task.  
+* **DataSources** are organized within a **Pipeline** to execute the corresponding data integration pattern.  
 * On completion, the **Pipeline** will send confirmation to the **SwitchBoard** that it was executed successfully.  
 * The **SwitchBoard** then updates the **StatusController** and identifies any downstream **Pipeline** to execute.  
   
