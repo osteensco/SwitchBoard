@@ -119,5 +119,22 @@ class PandasDF(DataSource):
 
 
 
+class PyDict(DataSource):
+    def __init__(self, transformations: list[function]) -> None:
+        super().__init__()
+        self.transformSteps = transformations
+
+    def invoke(self, data: dict | None):
+        super().invoke(data)
+        for f in self.transformSteps:
+            f(self.data)
+
+
+
+
+
+
+
+
 
 
