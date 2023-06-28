@@ -58,7 +58,8 @@ class DataSource:
 
     def invoke(self, data: dict | None):
         self.data = self.receiveData(data)
-        self.process(data, *self.args, **self.kwargs)
+        if self.process:
+            self.process(data, *self.args, **self.kwargs)
 
 
 
@@ -96,26 +97,26 @@ class CallAPI(DataSource):
 
 
 class BigQuery(DataSource):
-#bigquery jobType should help map specific BigQuery operations
-    #sql, load, insert
-    def __init__(self, projectId, sqlString, jobType, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
+    def __init__(self, projectId: str, sqlString: str | None = None, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
         super().__init__(func, funcArgs)
-        self.job = sqlString
+        self.sql = sqlString
         self.client = bigquery.Client(projectId)
 
 
-    def run(self, client, sql):
+    def runQuery(self, client, sql):
         client(sql).result()
 
     def invoke(self, data: dict | None):
-        super().invoke(data)
-        self.run(self.client, self.job)
-
+        self.data = self.receiveData(data)
+        if self.sql:
+            self.runQuery(self.client, self.sql)
+        if self.process:
+            self.process(data, self.client, *self.args, **self.kwargs)
 
 
 
 class CloudStorage(DataSource):
-    def __init__(self, bucket, blobName, jobType, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
+    def __init__(self, bucket: str, blobName: str, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
         super().__init__(func, funcArgs)
         pass
 
