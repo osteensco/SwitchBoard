@@ -25,8 +25,12 @@ class DataSource:
     '''
     Base class used for developing DataSources that are fed into a Pipeline object.
     '''
-    def __init__(self) -> None:
+    def __init__(self, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
         self.data = None
+        self.process = self.setProcessingFunction(func)
+        self.args = self.setFunctionArgs(funcArgs)
+        self.kwargs = self.setFunctionKwargs(funcArgs)
+
 
     def receiveData(self, data):
         if data:
@@ -34,9 +38,27 @@ class DataSource:
         else:
             return {}
 
+    def setProcessingFunction(self, func):
+        if func:
+            return func
+        else:
+            None
+
+    def setFunctionArgs(self, funcArgs):
+        if type(funcArgs) is tuple:
+            return funcArgs
+        else:
+            return None
+
+    def setFunctionKwargs(self, funcArgs):
+        if type(funcArgs) is dict:
+            return funcArgs
+        else:
+            return None
+
     def invoke(self, data: dict | None):
         self.data = self.receiveData(data)
-
+        self.process(data, *self.args, **self.kwargs)
 
 
 
@@ -44,8 +66,8 @@ class DataSource:
 
 
 class WebScraper(DataSource):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
+        super().__init__(func, funcArgs)
         pass
 
     def getreq(self, url):
@@ -63,8 +85,8 @@ class WebScraper(DataSource):
 
 
 class CallAPI(DataSource):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
+        super().__init__(func, funcArgs)
         pass
 
     def invoke(self, data: dict | None):
@@ -76,8 +98,8 @@ class CallAPI(DataSource):
 class BigQuery(DataSource):
 #bigquery jobType should help map specific BigQuery operations
     #sql, load, insert
-    def __init__(self, projectId, sqlString, jobType) -> None:
-        super().__init__()
+    def __init__(self, projectId, sqlString, jobType, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
+        super().__init__(func, funcArgs)
         self.job = sqlString
         self.client = bigquery.Client(projectId)
 
@@ -93,8 +115,8 @@ class BigQuery(DataSource):
 
 
 class CloudStorage(DataSource):
-    def __init__(self, bucket, blobName, jobType) -> None:
-        super().__init__()
+    def __init__(self, bucket, blobName, jobType, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
+        super().__init__(func, funcArgs)
         pass
 
     def invoke(self, data: dict | None):
@@ -104,30 +126,29 @@ class CloudStorage(DataSource):
 
 
 class PandasDF(DataSource):
-    def __init__(self, transformations: list[function]) -> None:
-        super().__init__()
+    def __init__(self, transformations: function, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
+        super().__init__(func, funcArgs)
         self.df = pd.DataFrame()
-        self.transformSteps = transformations
+        self.transformations = transformations
 
     def invoke(self, data: dict | None):
-        super().invoke(data)
         self.df = pd.DataFrame.from_dict(data)
-        for f in self.transformSteps:
-            f(self.df)
+        self.process(self.df, *self.args, **self.kwargs)
+
+
 
 
 
 
 
 class PyDict(DataSource):
-    def __init__(self, transformations: list[function]) -> None:
-        super().__init__()
-        self.transformSteps = transformations
+    def __init__(self, func: function | None = None, funcArgs: tuple | dict | None = None) -> None:
+        super().__init__(func, funcArgs)
+        
 
     def invoke(self, data: dict | None):
         super().invoke(data)
-        for f in self.transformSteps:
-            f(self.data)
+        
 
 
 
