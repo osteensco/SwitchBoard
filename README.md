@@ -37,7 +37,7 @@ SwitchBoard is comprised of 4 main components: **Callers**, **StatusControllers*
   
 #### Typical workflow for a SwitchBoard App: 
 * An enpoint is triggered via pub/sub or http and uses a **Caller** to trigger the **SwitchBoard** and provide information about the caller.  
-* The **SwitchBoard** will read the **destinationMap** and determine the appropriate serverless function to execute, then check the **StatusController** to verify the dependency requirements, if any, have been met before triggering the function.  
+* The **SwitchBoard** will read the **destinationMap** ENV variable and determine the appropriate serverless function to execute, then check the **StatusController** to verify the dependency requirements, if any, have been met before triggering the function.  
 * On completion, the serverless function will use another **Caller** to send confirmation to the **SwitchBoard** that it was executed successfully.  
 * The **SwitchBoard** then updates the **StatusController** and checks the **destinationMap** to identify any additional downstream functions to execute.  
 <br>
