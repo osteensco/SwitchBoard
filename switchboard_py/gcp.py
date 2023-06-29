@@ -61,12 +61,6 @@ class GCP_switchboard(CloudProvider):
         else:
             logging.error('Pipeline trigger request failed with status code:', response.status_code)
 
-    
-    def receiveConfirmation(self, caller):
-        # called when caller is a completed pipeline function
-        logging.info(f'''{caller} pipeline completed successfully''')
-
-    
     def updateStatus(self, bucket: Bucket, caller: str, completedStatusKey: str, status: bool):
         # update appropriate json object in cloud storage
         blob = bucket.blob(f'''{caller}.json''')

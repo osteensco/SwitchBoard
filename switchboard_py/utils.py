@@ -55,14 +55,10 @@ class CloudProvider:
     def forwardCall(self, *args, **kwargs):
         raise NotImplementedError("Subclasses must implement forwardCall()")
 
-    def receiveConfirmation(self):
-        raise NotImplementedError("Subclasses must implement receiveConfirmation()")
-
     def updateStatus(self, *args, **kwargs):
         raise NotImplementedError("Subclasses must implement updateStatus()")
 
-    def run(self):
-        raise NotImplementedError("Subclasses must implement run()")
+
 
 
 

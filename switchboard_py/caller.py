@@ -24,7 +24,7 @@ class Caller():
         self.caller = caller
         self.caller_type = callerType
         self.payload = self.constructPayload(caller, callerType, payload)
-        init_log()
+
 
     def constructPayload(self, caller, callerType, body):
         return {

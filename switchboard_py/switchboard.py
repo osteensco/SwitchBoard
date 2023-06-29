@@ -133,9 +133,14 @@ class SwitchBoard():
         self.destinationMap = destinationMap
         init_log()
 
-    @http_trigger
+
     def receiveCall(self):
         logging.info(f'''Call received from {self.caller}''')
+
+
+    def receiveConfirmation(self):
+        # called when caller is a completed pipeline function
+        logging.info(f'''{self.caller} pipeline completed successfully''')
 
 
     def grabDependencies(self):
@@ -179,10 +184,6 @@ class SwitchBoard():
 
     async def forwardCall(self, endpoint):
         await self.cloud.forwardCall(endpoint)
-
-    @http_trigger
-    def receiveConfirmation(self):
-        self.cloud.receiveConfirmation(self.caller)
 
     def updateStatus(self, caller, status):
         self.cloud.updateStatus(self.sc_bucket, caller, self.completed_status_key, status)
