@@ -7,7 +7,7 @@
 <br>
 <br>
 
-SwitchBoard is a library designed for utilizing severless functions and applying orchestration logic for lightweight data transformations, data processing, and data pipelines.
+SwitchBoard is a framework designed for utilizing severless functions and applying orchestration logic for lightweight data transformations, data processing, and data pipelines.
 
 <br>
 <br>
@@ -33,14 +33,14 @@ Currently, only Python and Google Cloud are supported. There are plans to suppor
 
 ## How does it work?
   
-SwitchBoard is comprised of five main components: **Callers**, **DataSources**, **Pipelines**, **StatusControllers**, and **a SwitchBoard**.  
+SwitchBoard is comprised of 4 main components: **Callers**, **StatusControllers**, the **destinationMap** and **a SwitchBoard**.  
   
-* A **Caller** is created and passes caller information to the **SwitchBoard**.  
-* The **SwitchBoard** will determine the appropriate **Pipeline** to execute and reference the **StatusController** to verify the dependency requirements, if any, have been met.  
-* **DataSources** are organized within a **Pipeline** to execute the corresponding data integration pattern.  
-* On completion, the **Pipeline** will send confirmation to the **SwitchBoard** that it was executed successfully.  
-* The **SwitchBoard** then updates the **StatusController** and identifies any downstream **Pipeline** to execute.  
-  
+#### Typical workflow for a SwitchBoard App: 
+* An enpoint is triggered via pub/sub or http and uses a **Caller** to trigger the **SwitchBoard** and provide information about the caller.  
+* The **SwitchBoard** will read the **destinationMap** and determine the appropriate serverless function to execute, then check the **StatusController** to verify the dependency requirements, if any, have been met before triggering the function.  
+* On completion, the serverless function will use another **Caller** to send confirmation to the **SwitchBoard** that it was executed successfully.  
+* The **SwitchBoard** then updates the **StatusController** and checks the **destinationMap** to identify any additional downstream functions to execute.  
+<br>
 
 <div align="center">
   <img src="https://github.com/osteensco/SwitchBoard/assets/86266589/8c15c91f-9f3c-4b23-be77-3317b5d5a918"><br>
