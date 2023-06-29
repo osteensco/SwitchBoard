@@ -43,5 +43,6 @@ SwitchBoard is comprised of 4 main components: **Callers**, **StatusControllers*
 <br>
 
 <div align="center">
-  <img src="https://github.com/osteensco/SwitchBoard/assets/86266589/8c15c91f-9f3c-4b23-be77-3317b5d5a918"><br>
+  <img src="https://github.com/osteensco/SwitchBoard/assets/86266589/f9f5df77-8e36-41b8-8984-4b04d634ed29"><br>
 </div>
+
