@@ -7,6 +7,11 @@
 <br>
 <br>
 
+
+
+<br>
+<br>
+
 SwitchBoard is a framework designed for utilizing severless functions and applying orchestration logic for lightweight data transformations, data processing, and data pipelines.
 
 <br>
@@ -46,3 +51,8 @@ SwitchBoard is comprised of 4 main components: **Callers**, **StatusControllers*
   <img src="https://github.com/osteensco/SwitchBoard/assets/86266589/f9f5df77-8e36-41b8-8984-4b04d634ed29"><br>
 </div>
 
+<br>
+<br>
+
+##Quickstart
+#to build project directory, in terminal run `switchboard-cli start_project <project_name> <cloud_provider>`

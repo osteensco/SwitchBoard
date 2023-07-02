@@ -38,7 +38,7 @@ setup(
         'rsa>=4.9',
         'six>=1.16.0',
         'tzdata>=2023.3',
-        'urllib3>=1.26.16',
+        'urllib3<=2.0',
         'watchdog>=3.0.0',
         'Werkzeug>=2.3.4'
     ],
@@ -48,3 +48,4 @@ setup(
         ],
     }
 )
+#to build project directory, in terminal run `switchboard-cli start_project <project_name> <cloud_provider>`
