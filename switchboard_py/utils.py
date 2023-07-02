@@ -135,7 +135,7 @@ def connect_to_bucket(cloud_provider: GCP, bucket_name: str = 'StatusController'
 def endpoint_boilerplate():
     return '''
 import os
-from cloud-switchboard import http_trigger, Caller
+from switchboard_py import http_trigger, Caller
 
 @http_trigger
 def main(request):
@@ -155,7 +155,7 @@ def main(request):
 def pipeline_boilerplate():
     return '''
 import os
-from cloud-switchboard import http_trigger, Caller
+from switchboard_py import http_trigger, Caller
 
 @http_trigger
 def main(request):
@@ -174,7 +174,7 @@ def main(request):
 
 def switchboard_boilerplate():
     return '''
-from cloud-switchboard import http_trigger, SwitchBoard, connect_to_bucket, GCP
+from switchboard_py import http_trigger, SwitchBoard, connect_to_bucket, GCP
 
 bucket = connect_to_bucket(GCP)
 
