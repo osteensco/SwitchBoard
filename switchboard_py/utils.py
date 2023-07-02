@@ -1,5 +1,5 @@
 from google.cloud.storage.bucket import Bucket as GCP_Bucket
-
+import os
 
 
 
@@ -128,6 +128,10 @@ def connect_to_bucket(cloud_provider: GCP, bucket_name: str = 'StatusController'
         raise ValueError(f'''{cloud_provider} is not a valid cloud provider option.''')
 
 
+
+
+
+
 def create_api(project_manager_api):
 
     code = '''
@@ -148,9 +152,31 @@ if __name__ == '__main__':
         f.write(code)
 
 
+def create_gcp_deployment_scripts(project_dir):
+    cloudbuild_file = os.path.join(project_dir, 'cloudbuilds', 'switchboard.yaml')
+    build_steps = '''
+
+'''
+    with open(cloudbuild_file, 'w') as yaml:
+        yaml.write(build_steps)
+
+
+def create_aws_deployment_scripts(project_dir):
+    return
+
+
+def create_azure_deployment_scripts(project_dir):
+    return
+
+
+deployment_script = {
+    'gcp': create_gcp_deployment_scripts,
+    # 'aws': create_aws_deployment_scripts,
+    # 'azure': create_azure_deployment_scripts
+}
+
 
 def start_project(project_name, cloud_provider):
-    import os
 
     base_dir = os.getcwd()
     project_dir = os.path.join(base_dir, project_name)
@@ -171,20 +197,20 @@ def start_project(project_name, cloud_provider):
         dir_path = os.path.join(project_dir, subdir)
         os.makedirs(dir_path, exist_ok=True)
 
-
-    cloudbuild_file = os.path.join(project_dir, 'cloudbuilds', 'switchboard.yaml')
+    deployment_script[cloud_provider](project_dir)
+    
     switchboard_py = os.path.join(project_dir, 'switchboard', 'switchboard.py')
     destination_map = os.path.join(project_dir, 'switchboard', 'destinationMap.json')
     project_manager_api = os.path.join(project_dir, 'manager_api.py')
 
-    open(cloudbuild_file, 'w').close()
+    
     open(switchboard_py, 'w').close()
     open(destination_map, 'w').close()
     create_api(project_manager_api)
 
 
-    print(f"Boilerplate project directory '{project_name}' created successfully!")
-    print(f"Cloud provider: {cloud_provider}")
+    print(f"Project directory '{project_name}' created successfully!")
+    print(f"Cloud provider set as: {cloud_provider}")
 
 
 
