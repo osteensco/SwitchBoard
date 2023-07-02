@@ -13,8 +13,7 @@ integrated_cloud_providers = [
 class ValidateArg(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if values not in integrated_cloud_providers:
-            print("Got value:", values)
-            raise ValueError(f'''Please choose from: {','.join(i for i in integrated_cloud_providers)}''')
+            raise ValueError(f'''Please choose from: {','.join(i for i in integrated_cloud_providers)}, Got value: {values}''')
         setattr(namespace, self.dest, values)
 
 
