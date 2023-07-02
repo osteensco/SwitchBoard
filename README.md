@@ -7,18 +7,27 @@
 <br>
 <br>
 
-
-
-<br>
-<br>
-
 SwitchBoard is a framework designed for utilizing severless functions and applying orchestration logic for lightweight data transformations, data processing, and data pipelines.
 
 <br>
 <br>
 
+## Table of Contents
+**[About SwitchBoard](#about-switchboard)**<br>
+**[How does it Work?](#how-does-it-work)**<br>
+**[Quickstart](#quickstart)**<br>
 
-## What problem does SwitchBoard solve?
+<br>
+<br>
+  
+***
+  
+<br>
+<br>
+
+## About SwitchBoard  
+  
+### What problem does SwitchBoard solve?
   
 In the age of Big Data it's easy to forget that not every use case involves petabytes of data or thousands of data pipelines.
 There are many tools for orchestration out there already, but for low complexity and/or low volume use cases, there are a few problems with using other tools.
@@ -33,6 +42,10 @@ Multiple data pipelines can be built and orchestration managed using the SwitchB
   
 Currently, only Python and Google Cloud are supported. There are plans to support other languages and cloud providers in the future.  
 
+<br>
+  
+***
+  
 <br>
 <br>
 
@@ -52,7 +65,18 @@ SwitchBoard is comprised of 4 main components: **Callers**, **StatusControllers*
 </div>
 
 <br>
+  
+***
+  
+<br>
 <br>
 
-##Quickstart
-#to build project directory, in terminal run `switchboard-cli start_project <project_name> <cloud_provider>`
+## Quickstart  
+
+Install the switchboard library:  
+
+`pip install git+https://github.com/osteensco/Cloud-SwitchBoard.git#egg=cloud-switchboard`  
+
+To build boilerplate project directory, run:  
+
+`switchboard-cli start_project <project_name> <cloud_provider>`
