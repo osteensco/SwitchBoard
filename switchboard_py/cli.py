@@ -26,7 +26,7 @@ def main():
 
     start_project_parser = subparsers.add_parser('start_project', help='Create a new project')
     start_project_parser.add_argument('project_name', type=str, help='Name of the project')
-    start_project_parser.add_argument('cloud_provider', type=str, action='ValidateArg', help='Cloud Provider being used')
+    start_project_parser.add_argument('cloud_provider', type=str, action=ValidateArg, help='Cloud Provider being used')
 
     args = parser.parse_args()
 
