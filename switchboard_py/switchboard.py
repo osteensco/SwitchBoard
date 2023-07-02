@@ -267,8 +267,7 @@ class SwitchBoard():
 
         ## cloud-switchboard on pypi
             ## need to register once library is ready enough
-        ## git+https://github.com/osteensco/[SwitchBoard].git
-        ## pip install -e
+        ## pip install git+https://github.com/osteensco/Cloud-SwitchBoard.git#egg=cloud-switchboard
             ## this will install the library in "editable mode" allowing changes to the library to be reflected automatically
 
 
