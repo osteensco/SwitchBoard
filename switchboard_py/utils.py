@@ -132,12 +132,127 @@ def connect_to_bucket(cloud_provider: GCP, bucket_name: str = 'StatusController'
 
 
 
+def endpoint_boilerplate():
+    return '''
+import os
+from cloud-switchboard import http_trigger, Caller
+
+@http_trigger
+def main(request):
+    
+    #do some data stuff
+
+    sb_endpoint = os.environ.get('SWITCHBOARD')
+    caller_name = 'endpoint_boilerplate'
+    caller_type = 'cron'
+    payload = {'datafield': 'some data'}
+
+    call_switchboard = Caller(sb_endpoint, caller_name, caller_type, payload)
+    call_switchboard.invoke()
+    '''
+
+
+def pipeline_boilerplate():
+    return '''
+import os
+from cloud-switchboard import http_trigger, Caller
+
+@http_trigger
+def main(request):
+    
+    #do some data stuff
+
+    sb_endpoint = os.environ.get('SWITCHBOARD')
+    caller_name = 'pipeline_boilerplate'
+    caller_type = 'pipeline_completetion'
+    payload = {'datafield': 'some data'}
+
+    send_conf_message = Caller(sb_endpoint, caller_name, caller_type, payload)
+    send_conf_message.invoke()
+    '''
+
+
+def switchboard_boilerplate():
+    return '''
+from cloud-switchboard import http_trigger, SwitchBoard, connect_to_bucket, GCP
+
+bucket = connect_to_bucket(GCP)
+
+@http_trigger
+def main(request):
+
+    payload = {'datafield': 'some data'}
+    destinationMap = os.environ.get('DESTINATIONMAP')
+
+    sb = SwitchBoard(GCP, bucket, payload, destinationMap)
+    sb.run()
+
+    '''
+
+
+def destinationmap_boilerplate():
+    return '''
+{
+    "cron": {
+        "daily": {
+            "endpoint": {
+                "name1": "URL",
+                "name2": "URL",
+                "name3": "URL"
+            }
+        },
+        "endpoint_boilerplate": {
+            "endpoint": {
+                "name4": "URL",
+                "name5": "URL",
+                "name6": "URL"
+            }
+        }
+    },
+    "webhook": {
+        "name1": {
+            "endpoint": "URL"
+        },
+        "name2": {
+            "endpoint": "URL"
+        },
+        "name3": {
+            "endpoint": "URL"
+        }
+    },
+    "pipeline_completion": {
+        "pipeline_boilerplate": {
+            "endpoint": "URL",
+            "dependency": [
+                "pipeline_name3",
+                "pipeline_name4"
+            ]
+        },
+        "name2": {
+            "endpoint": {
+                "name1": "URL",
+                "name2": "URL",
+                "name3": "URL"
+            },
+            "dependency": [
+                "pipeline_name5",
+                "pipeline_name6"
+            ]
+        }
+    }
+}
+    '''
+
+
+
+
+
+
 def create_api(project_manager_api):
 
     code = '''
 #!/usr/bin/env python
-import os
-import sys
+from cloud-switchboard.project_manager import api
 
 if __name__ == '__main__':
     # code here
@@ -146,6 +261,7 @@ if __name__ == '__main__':
     #other commands could include
         #switching/setting cloud provider
         #creating .yaml files for specific pipelines
+        #deploy StatusController files to object storage
         #various other tasks
 
     with open(project_manager_api, 'w') as f:
@@ -153,9 +269,25 @@ if __name__ == '__main__':
 
 
 def create_gcp_deployment_scripts(project_dir):
-    cloudbuild_file = os.path.join(project_dir, 'cloudbuilds', 'switchboard.yaml')
-    build_steps = '''
 
+    buildd_dir = 'cloud_builds'
+    dir_path = os.path.join(project_dir, buildd_dir)
+    os.makedirs(dir_path, exist_ok=True)
+
+    cloudbuild_file = os.path.join(project_dir, buildd_dir, 'switchboard.yaml')
+    build_steps = '''
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - functions
+  - deploy
+  - main
+  - --source=./switchboard
+  - --trigger-http
+  - --allow-unauthenticated
+  - --runtime=python39
+  - --memory=1024MB
+  - --timeout=540s
 '''
     with open(cloudbuild_file, 'w') as yaml:
         yaml.write(build_steps)
@@ -186,7 +318,6 @@ def start_project(project_name, cloud_provider):
 
     # Create subdirectories and files
     subdirectories = [
-        'cloudbuilds',
         'switchboard',
         'endpoints',
         'pipelines',
@@ -199,13 +330,21 @@ def start_project(project_name, cloud_provider):
 
     deployment_script[cloud_provider](project_dir)
     
+    endpoint = os.path.join(project_dir, 'endpoints', 'endpoint_placeholder.py')
+    pipeline = os.path.join(project_dir, 'pipelines', 'pipeline_placeholder.py')
     switchboard_py = os.path.join(project_dir, 'switchboard', 'switchboard.py')
     destination_map = os.path.join(project_dir, 'switchboard', 'destinationMap.json')
     project_manager_api = os.path.join(project_dir, 'manager_api.py')
 
     
-    open(switchboard_py, 'w').close()
-    open(destination_map, 'w').close()
+    with open(endpoint, 'w') as e:
+        e.write(endpoint_boilerplate())
+    with open(pipeline, 'w') as p:
+        p.write(pipeline_boilerplate())
+    with open(switchboard_py, 'w') as s:
+        s.write(switchboard_boilerplate())
+    with open(destination_map, 'w') as d:
+        d.write(destinationmap_boilerplate())
     create_api(project_manager_api)
 
 
