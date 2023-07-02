@@ -128,6 +128,64 @@ def connect_to_bucket(cloud_provider: GCP, bucket_name: str = 'StatusController'
         raise ValueError(f'''{cloud_provider} is not a valid cloud provider option.''')
 
 
+def create_api(project_manager_api):
+
+    code = '''
+#!/usr/bin/env python
+import os
+import sys
+
+if __name__ == '__main__':
+    # code here
+'''
+    #map out commands for deploying functions and StatusController objects.
+    #other commands could include
+        #switching/setting cloud provider
+        #creating .yaml files for specific pipelines
+        #various other tasks
+
+    with open(project_manager_api, 'w') as f:
+        f.write(code)
+
+
+
+def start_project(project_name, cloud_provider):
+    import os
+
+    base_dir = os.getcwd()
+    project_dir = os.path.join(base_dir, project_name)
+
+    # Create the main project directory
+    os.makedirs(project_dir, exist_ok=True)
+
+    # Create subdirectories and files
+    subdirectories = [
+        'cloudbuilds',
+        'switchboard',
+        'endpoints',
+        'pipelines',
+        'statuscontroller'
+    ]
+
+    for subdir in subdirectories:
+        dir_path = os.path.join(project_dir, subdir)
+        os.makedirs(dir_path, exist_ok=True)
+
+
+    cloudbuild_file = os.path.join(project_dir, 'cloudbuilds', 'switchboard.yaml')
+    switchboard_py = os.path.join(project_dir, 'switchboard', 'switchboard.py')
+    destination_map = os.path.join(project_dir, 'switchboard', 'destinationMap.json')
+    project_manager_api = os.path.join(project_dir, 'manager_api.py')
+
+    open(cloudbuild_file, 'w').close()
+    open(switchboard_py, 'w').close()
+    open(destination_map, 'w').close()
+    create_api(project_manager_api)
+
+
+    print(f"Boilerplate project directory '{project_name}' created successfully!")
+    print(f"Cloud provider: {cloud_provider}")
+
 
 
 
