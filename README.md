@@ -1,7 +1,8 @@
 <h1 align="center">SwitchBoard</h1>
 
 <div align="center">
-  <img src="https://github.com/osteensco/SwitchBoard/assets/86266589/00743d64-2478-468e-9c8e-67e1aad496b7"><br>
+  <img src="https://github.com/osteensco/SwitchBoard/assets/86266589/d4969c53-1b44-47d6-9be1-6333a9ce6c24"><br>
+
 
 </div>
 
