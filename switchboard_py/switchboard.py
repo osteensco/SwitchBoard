@@ -110,7 +110,7 @@ class SwitchBoard():
     def __init__(
             self, 
             cloud: GCP=GCP, 
-            bucket: GCP_Bucket & None=None, 
+            bucket: GCP_Bucket | None=None, 
             payload: dict=None, 
             destinationMap: dict=None, 
             callerCompletionKey: str = 'pipeline_completion', 
@@ -179,7 +179,7 @@ class SwitchBoard():
     def grabStatus(self) -> dict:
         self.cloud.grabStatus(self.sc_bucket, self.caller_dict, self.dependency_key)
 
-    def grabDestination(self) -> dict & str:
+    def grabDestination(self) -> dict | str:
         self.cloud.grabDestination(self.statusController, self.caller_dict, self.caller, self.completed_status_key, self.endpoint_key)
 
     async def forwardCall(self, endpoint):
