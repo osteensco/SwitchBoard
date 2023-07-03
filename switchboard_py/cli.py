@@ -24,6 +24,13 @@ def main():
     subparsers = parser.add_subparsers(dest='command')
 
     start_project_parser = subparsers.add_parser('start_project', help='Create a new project')
+    #add subparser for 
+        #deploying functions 
+        #uploading StatusController objects.
+        #switching/setting cloud provider
+        #creating .yaml files for specific pipelines
+        #deploy StatusController files to object storage
+        #???
     start_project_parser.add_argument('project_name', type=str, help='Name of the project')
     start_project_parser.add_argument('cloud_provider', type=str, action=ValidateArg, help='Cloud Provider being used')
 

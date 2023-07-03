@@ -174,6 +174,7 @@ def main(request):
 
 def switchboard_boilerplate():
     return '''
+import os
 from switchboard_py import http_trigger, SwitchBoard, connect_to_bucket, GCP
 
 bucket = connect_to_bucket(GCP)
@@ -248,25 +249,6 @@ def destinationmap_boilerplate():
 
 
 
-def create_api(project_manager_api):
-
-    code = '''
-#!/usr/bin/env python
-from cloud-switchboard.project_manager import api
-
-if __name__ == '__main__':
-    # code here
-'''
-    #map out commands for deploying functions and StatusController objects.
-    #other commands could include
-        #switching/setting cloud provider
-        #creating .yaml files for specific pipelines
-        #deploy StatusController files to object storage
-        #various other tasks
-
-    with open(project_manager_api, 'w') as f:
-        f.write(code)
-
 
 def create_gcp_deployment_scripts(project_dir):
 
@@ -334,18 +316,23 @@ def start_project(project_name, cloud_provider):
     pipeline = os.path.join(project_dir, 'pipelines', 'pipeline_placeholder.py')
     switchboard_py = os.path.join(project_dir, 'switchboard', 'switchboard.py')
     destination_map = os.path.join(project_dir, 'switchboard', 'destinationMap.json')
-    project_manager_api = os.path.join(project_dir, 'manager_api.py')
 
     
     with open(endpoint, 'w') as e:
         e.write(endpoint_boilerplate())
+    print('enpoint boilerplate function created')
+
     with open(pipeline, 'w') as p:
         p.write(pipeline_boilerplate())
+    print('pipeline boilerplate function created')
+
     with open(switchboard_py, 'w') as s:
         s.write(switchboard_boilerplate())
+    print('switchboard boilerplate function created')
+
     with open(destination_map, 'w') as d:
         d.write(destinationmap_boilerplate())
-    create_api(project_manager_api)
+    print('destinationMap boilerplate schema created')
 
 
     print(f"Project directory '{project_name}' created successfully!")
