@@ -9,6 +9,7 @@ from .utils import CloudProvider
 
 
 
+
 class GCP_switchboard(CloudProvider):
     '''
     Google Cloud Platform SwitchBoard object.
