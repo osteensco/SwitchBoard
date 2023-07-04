@@ -6,7 +6,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         'google-cloud-storage>=2.9.0',
-        'functions-framework>=3.0'
+        'functions-framework>=3.0',
+        'python-dotenv>=1.0.0'
     ],
     entry_points={
         'console_scripts': [

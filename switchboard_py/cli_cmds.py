@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+
 
 
 
@@ -157,7 +157,7 @@ def start_project(project_name, cloud_provider):
     with open(endpoint_env, 'w') as ee:
         ee.write(env_boilerplate())
     print('enpoint boilerplate function created')
-    
+
     with open(pipeline, 'w') as p:
         p.write(pipeline_boilerplate())
     with open(pipeline_env, 'w') as ep:
