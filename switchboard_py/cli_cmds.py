@@ -1,4 +1,6 @@
 import os
+import json
+
 
 
 
@@ -191,6 +193,23 @@ def start_project(project_name, cloud_provider):
 
     print(f"Project directory '{project_name}' created successfully!")
     print(f"Cloud provider set as: {cloud_provider}")
+
+
+
+def destinationmap_to_env(destinationmap_path, switchboard_dir):
+
+    with open(destinationmap_path, 'r') as json_file:
+        data = json.load(json_file)
+    
+    json_string = json.dumps(data, separators=(',', ':'))
+    json_string = json_string.replace('\n', '')
+
+    env_file = os.path.join(switchboard_dir, 'destinationMap.env')
+    with open(env_file, 'w') as env_file:
+        env_file.write("DESTINATIONMAP=" + json_string)
+
+
+
 
 
 
