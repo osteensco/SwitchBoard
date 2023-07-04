@@ -130,8 +130,8 @@ def start_project(project_name, cloud_provider):
     # Create subdirectories and files
     subdirectories = [
         'switchboard',
-        'endpoints',
-        'pipelines',
+        'endpoints/endpoint_placeholder',
+        'pipelines/pipeline_placeholder',
         'statuscontroller'
     ]
 
@@ -140,12 +140,13 @@ def start_project(project_name, cloud_provider):
         os.makedirs(dir_path, exist_ok=True)
 
     
-    endpoint = os.path.join(project_dir, 'endpoints/endpoint_placeholder', 'main.py')
-    endpoint_env = os.path.join(project_dir, 'endpoints/endpoint_placeholder', 'sb_endpoint.env')
-    pipeline = os.path.join(project_dir, 'pipelines/pipeline_placeholder', 'main.py')
-    pipeline_env = os.path.join(project_dir, 'pipelines/pipeline_placeholder', 'sb_endpoint.env')
+    endpoint = os.path.join(project_dir, 'endpoints', 'endpoint_placeholder', 'main.py')
+    endpoint_env = os.path.join(project_dir, 'endpoints', 'endpoint_placeholder', 'sb_endpoint.env')
+    pipeline = os.path.join(project_dir, 'pipelines', 'pipeline_placeholder', 'main.py')
+    pipeline_env = os.path.join(project_dir, 'pipelines', 'pipeline_placeholder', 'sb_endpoint.env')
     switchboard_py = os.path.join(project_dir, 'switchboard', 'main.py')
     destination_map = os.path.join(project_dir, 'switchboard', 'destinationMap.env')
+    statuscontroller = os.path.join(project_dir, 'statuscontroller', 'example.json')
 
     deployment_script[cloud_provider](project_dir, 'endpoint_placeholder', 'endpoints')
     deployment_script[cloud_provider](project_dir, 'pipeline_placeholder', 'pipelines')
@@ -172,7 +173,17 @@ def start_project(project_name, cloud_provider):
         d.write(destinationmap_boilerplate())
     print('destinationMap boilerplate schema created')
 
+    with open(statuscontroller, 'w') as st:
+        st.write('''
+{
+    "pipeline_name": {
+        "completed": false
+    }
+}
+        ''')
+    print('StatusController example object created')
 
+    
     print(f"Project directory '{project_name}' created successfully!")
     print(f"Cloud provider set as: {cloud_provider}")
 
@@ -181,5 +192,9 @@ def start_project(project_name, cloud_provider):
 
 
 if __name__ == '__main__':
+    base_dir = os.getcwd()
+    project_dir = os.path.join(base_dir, 'project_name')
+    print('')
+    print(os.path.join(project_dir, 'pipelines', 'pipeline_placeholder', 'sb_endpoint.env'))
     pass
 
