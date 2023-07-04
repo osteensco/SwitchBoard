@@ -84,6 +84,11 @@ def create_gcp_deployment_scripts(project_dir, function_name, func_directory):
     os.makedirs(dir_path, exist_ok=True)
 
     cloudbuild_file = os.path.join(project_dir, buildd_dir, f'''{function_name}.yaml''')
+    if function_name != func_directory:
+        path = f'''./{func_directory}/{function_name}'''
+    else:
+        path = f'''./{function_name}'''
+
     build_steps = f'''
 steps:
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -91,7 +96,7 @@ steps:
   - functions
   - deploy
   - main
-  - --source=./{func_directory}/{function_name}
+  - --source={path}
   - --trigger-http
   - --allow-unauthenticated
   - --runtime=python39
@@ -183,7 +188,7 @@ def start_project(project_name, cloud_provider):
         ''')
     print('StatusController example object created')
 
-    
+
     print(f"Project directory '{project_name}' created successfully!")
     print(f"Cloud provider set as: {cloud_provider}")
 
