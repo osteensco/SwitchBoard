@@ -79,8 +79,15 @@ def env_boilerplate():
     return """SWITCHBOARD='switchboard function endpoint url here'"""
 
 
-def create_gcp_deployment_scripts(project_dir, function_name, func_directory):
+def get_proj_dir_path(project_name):
+    base_dir = os.getcwd()
+    project_dir = os.path.join(base_dir, project_name)
+    return project_dir
 
+
+def create_gcp_deployment_script(project_name, function_name, func_directory):
+
+    project_dir = get_proj_dir_path(project_name)
     buildd_dir = 'cloud_builds'
     dir_path = os.path.join(project_dir, buildd_dir)
     os.makedirs(dir_path, exist_ok=True)
@@ -109,27 +116,26 @@ steps:
         yaml.write(build_steps)
 
 
-def create_aws_deployment_scripts(project_dir):
+def create_aws_deployment_script(project_dir):
     return
 
 
-def create_azure_deployment_scripts(project_dir):
+def create_azure_deployment_script(project_dir):
     return
 
 
 
 deployment_script = {
-    'gcp': create_gcp_deployment_scripts,
-    # 'aws': create_aws_deployment_scripts,
-    # 'azure': create_azure_deployment_scripts
+    'gcp': create_gcp_deployment_script,
+    # 'aws': create_aws_deployment_script,
+    # 'azure': create_azure_deployment_script
 }
 
 
 
 def start_project(project_name, cloud_provider):
 
-    base_dir = os.getcwd()
-    project_dir = os.path.join(base_dir, project_name)
+    project_dir = get_proj_dir_path(project_name)
 
     # Create the main project directory
     os.makedirs(project_dir, exist_ok=True)
@@ -196,15 +202,19 @@ def start_project(project_name, cloud_provider):
 
 
 
-def destinationmap_to_env(destinationmap_path, switchboard_dir):
+def destinationmap_to_env(project_name, destinationmap_path, switchboard_dir):
 
-    with open(destinationmap_path, 'r') as json_file:
+    project_dir = get_proj_dir_path(project_name)
+    destinationmap = os.path.join(project_dir, destinationmap_path)
+
+    with open(destinationmap, 'r') as json_file:
         data = json.load(json_file)
     
     json_string = json.dumps(data, separators=(',', ':'))
     json_string = json_string.replace('\n', '')
 
-    env_file = os.path.join(switchboard_dir, 'destinationMap.env')
+    switchboard_directory = os.path.join(project_dir, switchboard_dir)
+    env_file = os.path.join(switchboard_directory, 'destinationMap.env')
     with open(env_file, 'w') as env_file:
         env_file.write("DESTINATIONMAP=" + json_string)
 

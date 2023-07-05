@@ -1,5 +1,5 @@
 import argparse
-from .cli_cmds import start_project, destinationmap_to_env
+from .cli_cmds import start_project, destinationmap_to_env, deployment_script
 
 
 integrated_cloud_providers = [
@@ -31,20 +31,34 @@ def main():
     to_env_parser.add_argument('destinationmap_path', type=str, help='Path of destinationmap.json')
     to_env_parser.add_argument('switchboard_dir', type=str, help='Path of switchboard function directory')
     
+    deployment_script_parser = subparsers.add_parser('generate_deployment_script', help='creates a deployment script for a specified function for a specified cloud provider')
+    deployment_script_parser.add_argument('function_name', type=str, help='name of the serverless function folder')
+    deployment_script_parser.add_argument('function_directory', type=str, help='directory serverless function folder is located in')
+    
     #add subparser for     
-        #writing .yaml for a specific function directory
-        #switching/setting cloud provider
         #upload StatusController files to object storage
         #display help
+        #updating project name
+        #switching/setting cloud provider
 
 
     args = parser.parse_args()
 
     if args.command == 'start_project':
         start_project(args.project_name, args.cloud_provider)
+        project_name = args.project_name
+        cloud_provider = args.cloud_provider
+
     elif args.command == 'destinationmap_to_env':
         destinationmap_to_env(args.destinationmap_path, args.switchboard_dir)
-    
+
+    elif args.command == 'generate_deployment_script':
+        deployment_script[cloud_provider](project_name, args.function_name, args.function_directory)
+
+
+
+
+
 
 if __name__ == '__main__':
     main()
