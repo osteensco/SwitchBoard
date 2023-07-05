@@ -36,9 +36,12 @@ def main():
     deployment_script_parser.add_argument('function_directory', type=str, help='directory serverless function folder or status controller object file is located in')
     deployment_script_parser.add_argument('statuscontroller_bucket_name', nargs='?', type=str, help='Name of object storage bucket name')
     
-    #add subparser for     
-        #display help
-        #updating project name
+    update_proj_name_parser = subparsers.add_parser('update_proj_name', help='Informs the CLI of the new project name')
+    update_proj_name_parser.add_argument('new_name', type=str, help='The new name of the project')
+
+    help_parser = subparsers.add_parser('help', help='Show help for all commands')
+
+    #add subparser for 
         #switching/setting cloud provider
 
 
@@ -58,6 +61,12 @@ def main():
         else:
             bucket = args.statuscontroller_bucket_name
         deployment_script[cloud_provider](project_name, args.function_name, args.function_directory, bucket)
+
+    elif args.command == 'update_proj_name':
+        project_name = args.new_name
+
+    elif args.command == 'help':
+        parser.print_help()
 
 
 
