@@ -85,20 +85,31 @@ def get_proj_dir_path(project_name):
     return project_dir
 
 
-def create_gcp_deployment_script(project_name, function_name, func_directory):
+def create_gcp_deployment_script(project_name, function_name, func_directory, statuscontroller_bucket_name=None):
 
     project_dir = get_proj_dir_path(project_name)
     buildd_dir = 'cloud_builds'
     dir_path = os.path.join(project_dir, buildd_dir)
     os.makedirs(dir_path, exist_ok=True)
 
+
     cloudbuild_file = os.path.join(project_dir, buildd_dir, f'''{function_name}.yaml''')
+    
     if function_name != func_directory:
         path = f'''./{func_directory}/{function_name}'''
     else:
         path = f'''./{function_name}'''
 
-    build_steps = f'''
+
+    if '.json' in function_name.lower():
+        build_steps = f'''
+steps:
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', '{path}', 'gs://{statuscontroller_bucket_name}']
+        '''
+
+    else:
+        build_steps = f'''
 steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   args:
@@ -112,6 +123,7 @@ steps:
   - --memory=1024MB
   - --timeout=540s
 '''
+
     with open(cloudbuild_file, 'w') as yaml:
         yaml.write(build_steps)
 
