@@ -35,13 +35,24 @@ In the age of Big Data it's easy to forget that not every use case involves peta
 There are many tools for orchestration out there already, but for low complexity and/or low volume use cases, there are a few problems with using other tools.
 <br>
   
-* **Most orchestration tools need a dedicated instance to run. This is typically an additional cost that can seem unreasonable given less complex use cases that still have an orchestration need.** SwitchBoard is meant to be used with serverless functions, so a dedicated instance is not necessary. In terms of cost, this makes it easy to stay within the free tier or under a few cents a month with most cloud providers.
-* **Other tools that don't need a dedicated instance usually require multiple technologies used in conjunction with one another in order to apply orchestration logic. It's common for these tools to require log parsing, message or event triggers implemented, and then the actual orchestration logic has to be defined somewhere. Additional tools means additional technologies to manage. This adds seemingly unnecessary complexity to otherwise low complexity projects.** SwitchBoard uses JSON files in object storage with simple schemas to track pipeline completetions and check dependencies. 
-* **Managing tools designed with complex data flows in mind for simple projects can feel a bit over engineered.** SwitchBoard is designed to be easy to set up and easy to use. It's not meant for complex data flows. It's purpose is to provide the low complexity solution to low complexity problems.
+* ### Most orchestration tools need a dedicated instance to run. <br>
+
+    This is typically an additional cost that can seem unreasonable given less complex use cases that still have an orchestration need. SwitchBoard is meant to be used with serverless functions, so a dedicated instance is not necessary. In terms of cost, this makes it easy to stay within the free tier or under a few cents a month with most cloud providers. <br>
+    
+* ### Other tools that don't need a dedicated instance usually require multiple technologies used in conjunction with one another in order to apply orchestration logic. <br>
+
+    It's common for these tools to require log parsing, message or event triggers implemented, and then the actual orchestration logic has to be defined somewhere. Additional tools means additional technologies to manage. This adds seemingly unnecessary complexity to otherwise low complexity projects. SwitchBoard uses JSON files in object storage with simple schemas to track pipeline completetions and check dependencies. <br>
+    
+* ### Managing tools designed with complex data flows in mind for simple projects can feel a bit over engineered.  <br>
+    SwitchBoard is designed to be easy to set up and easy to use. It's not meant for complex data flows. It's purpose is to provide the low complexity solution to low complexity problems. <br>
   
+<br>
 SwitchBoard attempts to provide a simplistic option by enabling a development environment without having to align between multiple tools.  
-Multiple data pipelines can be built and orchestration managed using the SwitchBoard library all within a monorepo, or multiple if desired.  
+Multiple data pipelines can be built and orchestration managed using the SwitchBoard framework within a monorepo. While it is designed with a monorepo in mind, multiple can still be used if desired.  
   
+<br>
+<br>
+<br>
 Currently, only Python and Google Cloud are supported. There are plans to support other languages and cloud providers in the future.  
 
 <br>
