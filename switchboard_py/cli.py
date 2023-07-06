@@ -1,5 +1,15 @@
 import argparse
-from .cli_cmds import start_project, destinationmap_to_env, deployment_script
+from .cli_cmds import (
+    start_project, 
+    destinationmap_to_env, 
+    read_config, 
+    write_config_name,
+    deployment_script
+)
+
+
+
+
 
 
 integrated_cloud_providers = [
@@ -47,13 +57,9 @@ def main():
 
     args = parser.parse_args()
 
-    project_name = None
-    cloud_provider = None
 
     if args.command == 'start_project':
         start_project(args.project_name, args.cloud_provider)
-        project_name = args.project_name
-        cloud_provider = args.cloud_provider
 
     elif args.command == 'destinationmap_to_env':
         destinationmap_to_env(args.destinationmap_path, args.switchboard_dir)
@@ -63,10 +69,11 @@ def main():
             bucket = None
         else:
             bucket = args.statuscontroller_bucket_name
-        deployment_script[cloud_provider](project_name, args.function_name, args.function_directory, bucket)
+        project = read_config()
+        deployment_script[project['cloud_provider']](project['project_name'], args.function_name, args.function_directory, bucket)
 
     elif args.command == 'update_proj_name':
-        project_name = args.new_name
+        write_config_name(args.new_name)
 
     elif args.command == 'help':
         parser.print_help()

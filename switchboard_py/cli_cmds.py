@@ -144,6 +144,28 @@ deployment_script = {
 }
 
 
+def read_config():
+    base_dir = os.getcwd()
+    config = os.path.join(base_dir, 'config.json')
+    with open(config, 'r') as c:
+        settings = json.loads(c.read())
+    return settings
+
+
+def write_config_name(project_name):
+    config = read_config()
+    cloud_provider = config['cloud_provider']
+
+    base_dir = os.getcwd()
+    config = os.path.join(base_dir, 'config.json')
+
+    with open(config, 'w') as c:
+        proj_info = {
+            "project_name": f"{project_name}",
+            "cloud_provider": f"{cloud_provider}"
+        }
+        c.write(json.dumps(proj_info))
+
 
 def start_project(project_name, cloud_provider):
 
