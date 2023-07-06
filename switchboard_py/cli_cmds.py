@@ -155,7 +155,10 @@ def read_config():
 def write_config_name(project_name):
     config = read_config()
     cloud_provider = config['cloud_provider']
+    create_config(project_name, cloud_provider)
 
+
+def create_config(project_name, cloud_provider):
     base_dir = os.getcwd()
     config = os.path.join(base_dir, 'config.json')
 
@@ -199,7 +202,9 @@ def start_project(project_name, cloud_provider):
     deployment_script[cloud_provider](project_dir, 'pipeline_placeholder', 'pipelines')
     deployment_script[cloud_provider](project_dir, 'switchboard', 'switchboard')
 
-    
+    create_config(project_name, cloud_provider)
+    print('project config file created')
+
     with open(endpoint, 'w') as e:
         e.write(endpoint_boilerplate())
     with open(endpoint_env, 'w') as ee:
