@@ -155,10 +155,16 @@ def read_config():
     return settings
 
 
-def write_config_name(project_name):
+def write_config_name(new_project_name):
     config = read_config()
+    proj_dir = config['project_name']
     cloud_provider = config['cloud_provider']
-    create_config(project_name, cloud_provider)
+
+    os.rename(proj_dir, new_project_name)
+    create_config(new_project_name, cloud_provider)
+    
+
+    print(f'''Project name updated to {new_project_name}''')
 
 
 def create_config(project_name, cloud_provider):
@@ -260,7 +266,7 @@ def destinationmap_to_env(project_name, destinationmap_path, switchboard_dir):
     with open(env_file, 'w') as env_file:
         env_file.write("DESTINATIONMAP=" + json_string)
 
-
+    print('Destination map json converted to env file')
 
 
 
