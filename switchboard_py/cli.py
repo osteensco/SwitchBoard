@@ -47,6 +47,9 @@ def main():
 
     args = parser.parse_args()
 
+    project_name = None
+    cloud_provider = None
+
     if args.command == 'start_project':
         start_project(args.project_name, args.cloud_provider)
         project_name = args.project_name
