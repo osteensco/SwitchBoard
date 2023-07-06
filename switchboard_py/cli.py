@@ -62,15 +62,17 @@ def main():
         start_project(args.project_name, args.cloud_provider)
 
     elif args.command == 'destinationmap_to_env':
-        destinationmap_to_env(args.destinationmap_path, args.switchboard_dir)
+        config = read_config()
+        project_name = config['project_name']
+        destinationmap_to_env(project_name, args.destinationmap_path, args.switchboard_dir)
 
     elif args.command == 'generate_deployment_script':
         if not args.statuscontroller_bucket_name:
             bucket = None
         else:
             bucket = args.statuscontroller_bucket_name
-        project = read_config()
-        deployment_script[project['cloud_provider']](project['project_name'], args.function_name, args.function_directory, bucket)
+        config = read_config()
+        deployment_script[config['cloud_provider']](config['project_name'], args.function_name, args.function_directory, bucket)
 
     elif args.command == 'update_proj_name':
         write_config_name(args.new_name)

@@ -127,6 +127,9 @@ steps:
     with open(cloudbuild_file, 'w') as yaml:
         yaml.write(build_steps)
 
+    print(f'''Created {cloudbuild_file}''')
+
+
 
 def create_aws_deployment_script(project_dir):
     return
