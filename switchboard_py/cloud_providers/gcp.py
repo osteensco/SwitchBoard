@@ -3,7 +3,7 @@ import json
 import requests
 import logging
 from google.cloud.storage.bucket import Bucket
-from .utils import CloudProvider
+from .cloud_types import CloudProvider
 
 
 

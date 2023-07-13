@@ -1,28 +1,10 @@
 from google.cloud.storage.bucket import Bucket as GCP_Bucket
-from .cloud_types import GCP
+from .cloud_providers import GCP
 
 
 
 
 
-class CloudProvider:
-    '''
-    Base class for establishing all methods needed for the SwitchBoard, agnostic of the cloud provider.\n
-    \n
-    Methods: \n
-    grabStatus, grabDestination, forwardCall, receiveConfirmation, updateStatus, run
-    '''
-    def grabStatus(self, *args, **kwargs):
-        raise NotImplementedError("Subclasses must implement grabStatus()")
-
-    def grabDestination(self, *args, **kwargs):
-        raise NotImplementedError("Subclasses must implement grabDestination()")
-
-    def forwardCall(self, *args, **kwargs):
-        raise NotImplementedError("Subclasses must implement forwardCall()")
-
-    def updateStatus(self, *args, **kwargs):
-        raise NotImplementedError("Subclasses must implement updateStatus()")
 
 
 

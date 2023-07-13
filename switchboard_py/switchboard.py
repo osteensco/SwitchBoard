@@ -1,9 +1,8 @@
 import base64
 import logging
 from google.cloud.storage.bucket import Bucket as GCP_Bucket
-from .cloud_types import GCP
 from .utils import init_log
-from .gcp import GCP_switchboard
+from .cloud_providers import GCP_switchboard, GCP
 
 
 
